@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use chrono::{DateTime, FixedOffset, Utc};
-use hyperliquid_backtester::{
+use hyperliquid_backtest::{
     mode_reporting::{
         ModeReportingManager, CommonPerformanceMetrics, FundingImpactAnalysis,
         RiskMetrics, ConnectionMetrics, AlertEntry, OrderSummary
@@ -111,7 +111,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut funding_by_symbol = HashMap::new();
     funding_by_symbol.insert(
         "BTC".to_string(),
-        hyperliquid_backtester::mode_reporting::SymbolFundingMetrics {
+        hyperliquid_backtest::mode_reporting::SymbolFundingMetrics {
             symbol: "BTC".to_string(),
             funding_pnl: 50.0,
             avg_funding_rate: 0.0001,
@@ -124,7 +124,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     funding_by_symbol.insert(
         "ETH".to_string(),
-        hyperliquid_backtester::mode_reporting::SymbolFundingMetrics {
+        hyperliquid_backtest::mode_reporting::SymbolFundingMetrics {
             symbol: "ETH".to_string(),
             funding_pnl: -20.0,
             avg_funding_rate: -0.0002,

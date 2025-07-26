@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use chrono::{DateTime, FixedOffset, Utc};
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::risk_manager::{RiskManager, RiskError, AssetClass};
-use hyperliquid_backtester::trading_mode::{RiskConfig, TradingMode};
-use hyperliquid_backtester::trading_mode_impl::{Position, OrderRequest, OrderSide, OrderType, TimeInForce};
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::risk_manager::{RiskManager, RiskError, AssetClass};
+use hyperliquid_backtest::trading_mode::{RiskConfig, TradingMode};
+use hyperliquid_backtest::trading_mode_impl::{Position, OrderRequest, OrderSide, OrderType, TimeInForce};
 
 /// # Risk Management Configuration Example
 ///

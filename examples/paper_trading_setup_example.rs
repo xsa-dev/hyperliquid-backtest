@@ -3,9 +3,9 @@ use std::time::Duration;
 use chrono::{DateTime, FixedOffset, Utc};
 use std::collections::HashMap;
 
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::trading_mode::{TradingConfig, RiskConfig, SlippageConfig};
-use hyperliquid_backtester::unified_data::{
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::trading_mode::{TradingConfig, RiskConfig, SlippageConfig};
+use hyperliquid_backtest::unified_data::{
     Position, OrderRequest, OrderResult, MarketData, 
     OrderSide, OrderType, TimeInForce, OrderStatus,
     TradingStrategy, Signal, SignalDirection

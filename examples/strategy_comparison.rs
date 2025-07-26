@@ -1,6 +1,6 @@
 use chrono::{Duration, Utc};
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::csv_export::*;
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::csv_export::*;
 use rs_backtester::prelude::*;
 use std::fs::File;
 use std::io::Write;

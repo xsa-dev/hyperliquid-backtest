@@ -40,7 +40,7 @@
 //!
 //! **After:**
 //! ```rust,ignore
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //! ```
 //!
 //! ### 3. Replace Data Sources
@@ -86,7 +86,7 @@
 //!
 //! **After (hyperliquid-backtester):**
 //! ```rust,ignore
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), HyperliquidBacktestError> {
@@ -139,7 +139,7 @@
 //!
 //! **After (hyperliquid-backtester with funding awareness):**
 //! ```rust,ignore
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! fn enhanced_rsi_strategy(
 //!     data: &HyperliquidData, 
@@ -303,12 +303,12 @@
 //! 1. **Async requirement**: Data fetching requires async context
 //! 2. **Error types**: `HyperliquidBacktestError` instead of generic errors
 //! 3. **Commission structure**: More detailed fee structure
-//! 4. **Import paths**: Use `hyperliquid_backtester::prelude::*`
+//! 4. **Import paths**: Use `hyperliquid_backtest::prelude::*`
 //!
 //! ## Migration Checklist
 //!
 //! - [ ] Update `Cargo.toml` dependencies
-//! - [ ] Change imports to `hyperliquid_backtester::prelude::*`
+//! - [ ] Change imports to `hyperliquid_backtest::prelude::*`
 //! - [ ] Add `#[tokio::main]` to main function
 //! - [ ] Replace data loading with `HyperliquidData::fetch()`
 //! - [ ] Update commission structure to `HyperliquidCommission`

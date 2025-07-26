@@ -4,18 +4,18 @@ use std::sync::{Arc, Mutex};
 use chrono::{DateTime, FixedOffset, Utc};
 use ethers::signers::LocalWallet;
 
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::live_trading::{
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::live_trading::{
     LiveTradingEngine, LiveTradingError, AlertLevel, AlertMessage, 
     RetryPolicy, SafetyCircuitBreakerConfig
 };
-use hyperliquid_backtester::trading_mode::{ApiConfig, RiskConfig};
-use hyperliquid_backtester::unified_data::{
+use hyperliquid_backtest::trading_mode::{ApiConfig, RiskConfig};
+use hyperliquid_backtest::unified_data::{
     Position, OrderRequest, OrderResult, MarketData, 
     OrderSide, OrderType, TimeInForce, OrderStatus,
     TradingStrategy, Signal
 };
-use hyperliquid_backtester::logging::init_logger;
+use hyperliquid_backtest::logging::init_logger;
 
 // Simple moving average crossover strategy
 struct SmaCrossStrategy {

@@ -1,6 +1,6 @@
 use chrono::{DateTime, Duration, FixedOffset, Utc};
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::funding_report::*;
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::funding_report::*;
 use std::fs::File;
 use std::io::Write;
 

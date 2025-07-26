@@ -2,13 +2,13 @@ use std::time::Duration;
 use chrono::{DateTime, FixedOffset, Utc};
 use tokio::time::sleep;
 
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::live_trading::{LiveTradingEngine, AlertLevel};
-use hyperliquid_backtester::trading_mode::{TradingMode, TradingModeManager, TradingConfig, RiskConfig};
-use hyperliquid_backtester::trading_mode_impl::{Position, OrderRequest, OrderSide, OrderType, TimeInForce};
-use hyperliquid_backtester::risk_manager::RiskManager;
-use hyperliquid_backtester::real_time_monitoring::MonitoringManager;
-use hyperliquid_backtester::strategies::trading_strategy::TradingStrategy;
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::live_trading::{LiveTradingEngine, AlertLevel};
+use hyperliquid_backtest::trading_mode::{TradingMode, TradingModeManager, TradingConfig, RiskConfig};
+use hyperliquid_backtest::trading_mode_impl::{Position, OrderRequest, OrderSide, OrderType, TimeInForce};
+use hyperliquid_backtest::risk_manager::RiskManager;
+use hyperliquid_backtest::real_time_monitoring::MonitoringManager;
+use hyperliquid_backtest::strategies::trading_strategy::TradingStrategy;
 
 /// # Deployment and Production Setup Guide
 ///

@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - N/A (initial release)
 
 ### Migration Guide
-- See [Migration Guide](https://docs.rs/hyperliquid-backtest/latest/hyperliquid_backtester/migration/index.html) for upgrading from rs-backtester
+- See [Migration Guide](https://docs.rs/hyperliquid-backtest/latest/hyperliquid_backtest/migration/index.html) for upgrading from rs-backtester
 
 ---
 

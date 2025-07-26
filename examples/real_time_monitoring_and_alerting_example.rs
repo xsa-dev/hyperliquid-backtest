@@ -3,20 +3,20 @@ use std::sync::{Arc, Mutex};
 use chrono::{Utc, FixedOffset};
 use tokio::time::sleep;
 
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::real_time_monitoring::{
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::real_time_monitoring::{
     MonitoringServer, MonitoringClient, MonitoringManager,
     MonitoringMessage, TradeExecutionUpdate, ConnectionStatus,
     PerformanceMetricsUpdate, ConnectionStatusUpdate
 };
-use hyperliquid_backtester::mode_reporting::{
+use hyperliquid_backtest::mode_reporting::{
     MonitoringDashboardData, RealTimePnLReport, AlertEntry,
     ConnectionMetrics, RiskMetrics, PositionSnapshot, AccountSummary,
     PositionSummary, OrderSummary, RiskSummary, SystemStatus, PerformanceSnapshot
 };
-use hyperliquid_backtester::live_trading::{LiveTradingEngine, AlertLevel};
-use hyperliquid_backtester::unified_data::{OrderRequest, OrderResult, OrderSide, OrderType, OrderStatus, TimeInForce};
-use hyperliquid_backtester::trading_mode::TradingMode;
+use hyperliquid_backtest::live_trading::{LiveTradingEngine, AlertLevel};
+use hyperliquid_backtest::unified_data::{OrderRequest, OrderResult, OrderSide, OrderType, OrderStatus, TimeInForce};
+use hyperliquid_backtest::trading_mode::TradingMode;
 
 /// # Real-Time Monitoring and Alerting Setup Example
 ///

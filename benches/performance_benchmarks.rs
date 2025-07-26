@@ -4,7 +4,7 @@
 //! data conversion, funding calculations, and backtesting workflows.
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 use chrono::{DateTime, FixedOffset};
 use std::time::Duration;
 

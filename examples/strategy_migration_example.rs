@@ -4,16 +4,16 @@ use std::sync::{Arc, Mutex};
 use chrono::{DateTime, FixedOffset, Utc};
 use ethers::signers::LocalWallet;
 
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::trading_mode::{
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::trading_mode::{
     TradingMode, TradingModeManager, TradingConfig, RiskConfig, SlippageConfig, ApiConfig
 };
-use hyperliquid_backtester::unified_data::{
+use hyperliquid_backtest::unified_data::{
     Position, OrderRequest, OrderResult, MarketData, 
     OrderSide, OrderType, TimeInForce, OrderStatus,
     TradingStrategy, Signal, SignalDirection, FundingPayment
 };
-use hyperliquid_backtester::logging::init_logger;
+use hyperliquid_backtest::logging::init_logger;
 //
 / Enhanced SMA Crossover Strategy with Funding Rate Awareness
 struct EnhancedSmaStrategy {

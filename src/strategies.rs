@@ -18,7 +18,7 @@
 //! Exploits funding rate inefficiencies by taking positions when funding rates exceed thresholds.
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), HyperliquidBacktestError> {
@@ -48,7 +48,7 @@
 //! Traditional SMA crossover enhanced with funding rate considerations.
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! let funding_config = FundingAwareConfig {
 //!     funding_threshold: 0.0001,  // 0.01% threshold
@@ -65,7 +65,7 @@
 //! ### Funding Awareness Configuration
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! let config = FundingAwareConfig {
 //!     funding_threshold: 0.0001,      // Minimum funding rate to consider (0.01%)
@@ -86,7 +86,7 @@
 //! ### Implementing HyperliquidStrategy Trait
 //!
 //! ```rust,ignore
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! struct MyCustomStrategy {
 //!     funding_config: FundingAwareConfig,

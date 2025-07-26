@@ -1,4 +1,4 @@
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 use chrono::Utc;
 
 /// # Getting Started with Hyperliquid Backtester
