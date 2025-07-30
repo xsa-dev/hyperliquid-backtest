@@ -43,7 +43,7 @@ chrono = { version = "0.4", features = ["serde"] }
 ### Basic Backtesting Example
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 use chrono::{DateTime, FixedOffset, Utc};
 
 #[tokio::main]
@@ -88,7 +88,7 @@ async fn main() -> Result<(), HyperliquidBacktestError> {
 ### Funding Arbitrage Strategy
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), HyperliquidBacktestError> {
@@ -131,7 +131,7 @@ async fn main() -> Result<(), HyperliquidBacktestError> {
 The library supports fetching historical data for various cryptocurrencies and time intervals:
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 
 // Supported intervals: "1m", "5m", "15m", "1h", "4h", "1d"
 let data = HyperliquidData::fetch("BTC", "1h", start_time, end_time).await?;
@@ -160,7 +160,7 @@ The library supports all major cryptocurrencies available on Hyperliquid:
 Configure realistic trading fees based on Hyperliquid's fee structure:
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 
 // Default Hyperliquid fees
 let commission = HyperliquidCommission::default(); // 0.02% maker, 0.05% taker
@@ -178,7 +178,7 @@ let custom_commission = HyperliquidCommission {
 Create custom strategies using the built-in framework:
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 
 // Enhanced SMA crossover with funding awareness
 let strategy = enhanced_sma_cross(
@@ -218,7 +218,7 @@ backtest.export_enhanced_csv("backtest_results.csv")?;
 Configure logging for development and production:
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 
 // Basic logging setup
 init_logger(); // INFO level by default
@@ -274,7 +274,7 @@ cargo run --example funding_arbitrage_advanced
 Track performance of operations with built-in spans:
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 use tracing::Instrument;
 
 async fn fetch_and_backtest() -> Result<(), HyperliquidBacktestError> {
@@ -299,7 +299,7 @@ async fn fetch_and_backtest() -> Result<(), HyperliquidBacktestError> {
 Comprehensive error handling with detailed context:
 
 ```rust
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 
 match HyperliquidData::fetch("INVALID", "1h", start, end).await {
     Ok(data) => println!("Success!"),
@@ -325,7 +325,7 @@ use rs_backtester::prelude::*;
 let data = Data::from_csv("data.csv")?;
 
 // After (hyperliquid-backtest)
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 let data = HyperliquidData::fetch("BTC", "1h", start, end).await?;
 let rs_data = data.to_rs_backtester_data(); // Convert if needed
 ```

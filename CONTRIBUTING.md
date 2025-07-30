@@ -192,7 +192,7 @@ mod tests {
 /// # Examples
 ///
 /// ```rust
-/// use hyperliquid_backtester::prelude::*;
+/// use hyperliquid_backtest::prelude::*;
 ///
 /// let result = function_name(param1, param2)?;
 /// assert_eq!(result.value, expected_value);

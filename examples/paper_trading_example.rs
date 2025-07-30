@@ -3,7 +3,7 @@ use std::time::Duration;
 use chrono::{DateTime, FixedOffset, Utc};
 use std::collections::HashMap;
 
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 
 // A simple moving average crossover strategy
 struct SimpleSmaStrategy {

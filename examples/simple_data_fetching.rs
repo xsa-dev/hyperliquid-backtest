@@ -1,5 +1,5 @@
 use chrono::{Duration, Utc};
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 use std::fs::File;
 use std::io::Write;
 

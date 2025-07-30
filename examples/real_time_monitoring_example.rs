@@ -2,14 +2,14 @@ use std::time::Duration;
 use chrono::{Utc, FixedOffset};
 use tokio::time::sleep;
 
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::real_time_monitoring::{
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::real_time_monitoring::{
     MonitoringServer, MonitoringClient, MonitoringManager,
     MonitoringMessage, TradeExecutionUpdate, ConnectionStatus
 };
-use hyperliquid_backtester::live_trading::{LiveTradingEngine, AlertLevel};
-use hyperliquid_backtester::unified_data::{OrderRequest, OrderResult, OrderSide, OrderType, OrderStatus, TimeInForce};
-use hyperliquid_backtester::trading_mode::TradingMode;
+use hyperliquid_backtest::live_trading::{LiveTradingEngine, AlertLevel};
+use hyperliquid_backtest::unified_data::{OrderRequest, OrderResult, OrderSide, OrderType, OrderStatus, TimeInForce};
+use hyperliquid_backtest::trading_mode::TradingMode;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -110,8 +110,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn create_sample_dashboard_data() -> hyperliquid_backtester::mode_reporting::MonitoringDashboardData {
-    use hyperliquid_backtester::mode_reporting::*;
+fn create_sample_dashboard_data() -> hyperliquid_backtest::mode_reporting::MonitoringDashboardData {
+    use hyperliquid_backtest::mode_reporting::*;
     use std::collections::HashMap;
     
     let now = Utc::now().with_timezone(&FixedOffset::east(0));

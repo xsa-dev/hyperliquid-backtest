@@ -1,5 +1,5 @@
 use chrono::{DateTime, Duration, FixedOffset, Utc};
-use hyperliquid_backtester::prelude::*;
+use hyperliquid_backtest::prelude::*;
 use std::path::Path;
 
 #[tokio::main]

@@ -1,9 +1,5 @@
-use chrono::{Duration, Utc};
-use hyperliquid_backtester::prelude::*;
-use rs_backtester::prelude::*;
-use std::fs::File;
-use std::io::Write;
-use tracing::Instrument;
+use chrono::Utc;
+use hyperliquid_backtest::prelude::*;
 
 /// # Basic Backtest Example
 ///
@@ -38,7 +34,7 @@ use tracing::Instrument;
 /// ```
 
 #[tokio::main]
-async fn main() -> Result<(), HyperliquidBacktestError> {
+async fn main() -> Result<()> {
     // Initialize logging for better debugging and monitoring
     init_logger_with_level("info");
     
@@ -52,60 +48,16 @@ async fn main() -> Result<(), HyperliquidBacktestError> {
     let start_time = end_time - (90 * 24 * 3600); // 90 days of data
     
     println!("Fetching BTC/USD data for the last 90 days...");
-    let data = HyperliquidData::fetch_btc("1h", start_time, end_time).await?;
+    let data = HyperliquidData::fetch("BTC", "1h", start_time, end_time).await?;
     
     println!("Data fetched: {} data points from {} to {}\n", 
         data.len(),
         data.datetime.first().unwrap().format("%Y-%m-%d %H:%M"),
         data.datetime.last().unwrap().format("%Y-%m-%d %H:%M"));
     
-    // Create a simple SMA crossover strategy
+    // Create a simple SMA crossover strategy using the enhanced_sma_cross function
     println!("Setting up SMA crossover strategy (10/30)...");
-    let mut strategy = Strategy::new();
-    
-    // Strategy parameters
-    let short_period = 10;
-    let long_period = 30;
-    
-    // Initialize strategy
-    strategy.init(Box::new(move |_ctx, _data| {
-        // No initialization needed for this simple strategy
-    }));
-    
-    // Define strategy logic
-    strategy.next(Box::new(move |ctx, data| {
-        // Wait until we have enough data for the long SMA
-        if data.index < long_period {
-            return;
-        }
-        
-        // Calculate short and long SMAs
-        let mut short_sum = 0.0;
-        let mut long_sum = 0.0;
-        
-        for i in 0..short_period {
-            short_sum += data.close[data.index - i];
-        }
-        
-        for i in 0..long_period {
-            long_sum += data.close[data.index - i];
-        }
-        
-        let short_sma = short_sum / short_period as f64;
-        let long_sma = long_sum / long_period as f64;
-        
-        // Get current position
-        let position = ctx.position();
-        
-        // Trading logic
-        if short_sma > long_sma && position <= 0.0 {
-            // Bullish crossover - go long
-            ctx.entry_qty(1.0);
-        } else if short_sma < long_sma && position >= 0.0 {
-            // Bearish crossover - go short
-            ctx.entry_qty(-1.0);
-        }
-    }));
+    let strategy = enhanced_sma_cross(data.to_rs_backtester_data(), 10, 30, Default::default());
     
     // Set up backtest parameters
     let initial_capital = 10000.0; // $10,000
@@ -122,60 +74,61 @@ async fn main() -> Result<(), HyperliquidBacktestError> {
     // Create and run backtest
     let mut backtest = HyperliquidBacktest::new(
         data.clone(),
-        strategy,
+        "SMA Crossover (10/30)".to_string(),
         initial_capital,
-        commission,
+        commission.clone(),
     );
     
     // Run backtest with funding rates
-    backtest.calculate_with_funding();
+    backtest.calculate_with_funding()?;
     
-    // Get backtest results
-    let stats = backtest.stats();
+    // Get enhanced report
+    let report = backtest.enhanced_report()?;
     
     // Print backtest results
     println!("\nBacktest Results:");
     println!("----------------");
     println!("Initial Capital: ${:.2}", initial_capital);
-    println!("Final Capital: ${:.2}", stats.final_capital);
-    println!("Net Profit: ${:.2} ({:.2}%)", 
-        stats.net_profit,
-        stats.net_profit_pct * 100.0);
-    println!("Max Drawdown: {:.2}%", stats.max_drawdown * 100.0);
-    println!("Win Rate: {:.2}%", stats.win_rate * 100.0);
-    println!("Profit Factor: {:.2}", stats.profit_factor);
-    println!("Sharpe Ratio: {:.2}", stats.sharpe_ratio);
+    println!("Final Equity: ${:.2}", report.final_equity);
+    println!("Total Return: {:.2}%", report.total_return * 100.0);
+    println!("Max Drawdown: {:.2}%", report.max_drawdown * 100.0);
+    println!("Win Rate: {:.2}%", report.win_rate * 100.0);
+    println!("Profit Factor: {:.2}", report.profit_factor);
+    println!("Sharpe Ratio: {:.2}", report.sharpe_ratio);
     
-    // Get funding impact
-    let funding_impact = backtest.funding_impact();
+    // Get funding impact from enhanced metrics
+    let enhanced_metrics = &report.enhanced_metrics;
     println!("\nFunding Rate Impact:");
     println!("------------------");
-    println!("Total Funding Payments: ${:.2}", funding_impact.total_funding);
-    println!("Funding as % of PnL: {:.2}%", 
-        if stats.net_profit != 0.0 {
-            (funding_impact.total_funding / stats.net_profit).abs() * 100.0
-        } else {
-            0.0
-        });
+    println!("Total Return with Funding: {:.2}%", enhanced_metrics.total_return_with_funding * 100.0);
+    println!("Trading Only Return: {:.2}%", enhanced_metrics.trading_only_return * 100.0);
+    println!("Funding Only Return: {:.2}%", enhanced_metrics.funding_only_return * 100.0);
+    println!("Funding Payments Received: {}", enhanced_metrics.funding_payments_received);
+    println!("Funding Payments Paid: {}", enhanced_metrics.funding_payments_paid);
+    println!("Average Funding Rate: {:.4}%", enhanced_metrics.average_funding_rate * 100.0);
     
-    // Get trade statistics
-    let trade_stats = backtest.trade_stats();
-    println!("\nTrade Statistics:");
-    println!("----------------");
-    println!("Total Trades: {}", trade_stats.total_trades);
-    println!("Winning Trades: {}", trade_stats.winning_trades);
-    println!("Losing Trades: {}", trade_stats.losing_trades);
-    println!("Average Profit per Trade: ${:.2}", trade_stats.avg_profit_per_trade);
-    println!("Average Profit per Winning Trade: ${:.2}", trade_stats.avg_profit_per_winning_trade);
-    println!("Average Loss per Losing Trade: ${:.2}", trade_stats.avg_loss_per_losing_trade);
+    // Get commission statistics
+    let commission_stats = &report.commission_stats;
+    println!("\nCommission Statistics:");
+    println!("-------------------");
+    println!("Total Commission: ${:.2}", commission_stats.total_commission);
+    println!("Maker Fees: ${:.2}", commission_stats.maker_fees);
+    println!("Taker Fees: ${:.2}", commission_stats.taker_fees);
+    println!("Maker/Taker Ratio: {:.2}", commission_stats.maker_taker_ratio);
+    
+    // Get funding summary
+    let funding_summary = &report.funding_summary;
+    println!("\nFunding Summary:");
+    println!("---------------");
+    println!("Total Funding Paid: ${:.2}", funding_summary.total_funding_paid);
+    println!("Total Funding Received: ${:.2}", funding_summary.total_funding_received);
+    println!("Net Funding: ${:.2}", funding_summary.net_funding);
+    println!("Funding Contribution: {:.2}%", funding_summary.funding_contribution_percentage * 100.0);
     
     // Export results to CSV
     println!("\nExporting results to CSV...");
-    let csv_data = backtest.to_csv()?;
-    let csv_file = "basic_backtest_results.csv";
-    let mut file = File::create(csv_file)?;
-    file.write_all(csv_data.as_bytes())?;
-    println!("Results exported to {}", csv_file);
+    backtest.export_to_csv("basic_backtest_results.csv")?;
+    println!("Results exported to basic_backtest_results.csv");
     
     // Run the same backtest without funding to compare
     println!("\nRunning comparison backtest without funding rates...");
@@ -184,54 +137,38 @@ async fn main() -> Result<(), HyperliquidBacktestError> {
     
     let mut backtest_no_funding = HyperliquidBacktest::new(
         data.clone(),
-        Strategy::new_from_fn(move |ctx, data| {
-            // Same strategy logic as above
-            if data.index < long_period {
-                return;
-            }
-            
-            let mut short_sum = 0.0;
-            let mut long_sum = 0.0;
-            
-            for i in 0..short_period {
-                short_sum += data.close[data.index - i];
-            }
-            
-            for i in 0..long_period {
-                long_sum += data.close[data.index - i];
-            }
-            
-            let short_sma = short_sum / short_period as f64;
-            let long_sma = long_sum / long_period as f64;
-            
-            let position = ctx.position();
-            
-            if short_sma > long_sma && position <= 0.0 {
-                ctx.entry_qty(1.0);
-            } else if short_sma < long_sma && position >= 0.0 {
-                ctx.entry_qty(-1.0);
-            }
-        }),
+        "SMA Crossover (10/30) - No Funding".to_string(),
         initial_capital,
         commission_no_funding,
     );
     
-    backtest_no_funding.calculate();
+    backtest_no_funding.calculate_with_funding()?;
     
-    let stats_no_funding = backtest_no_funding.stats();
+    let report_no_funding = backtest_no_funding.enhanced_report()?;
     
     println!("\nComparison Results (Without Funding):");
     println!("-----------------------------------");
-    println!("Net Profit: ${:.2} ({:.2}%)", 
-        stats_no_funding.net_profit,
-        stats_no_funding.net_profit_pct * 100.0);
+    println!("Total Return: {:.2}%", report_no_funding.total_return * 100.0);
+    println!("Final Equity: ${:.2}", report_no_funding.final_equity);
     
     println!("\nFunding Impact on Performance:");
     println!("----------------------------");
-    println!("Net Profit Difference: ${:.2}", 
-        stats.net_profit - stats_no_funding.net_profit);
+    println!("Return Difference: {:.2}%", 
+        (report.total_return - report_no_funding.total_return) * 100.0);
+    println!("Equity Difference: ${:.2}", 
+        report.final_equity - report_no_funding.final_equity);
     println!("Performance Impact: {:.2}%", 
-        ((stats.net_profit / stats_no_funding.net_profit) - 1.0) * 100.0);
+        ((report.total_return / report_no_funding.total_return) - 1.0) * 100.0);
+    
+    // Print detailed funding report
+    println!("\nDetailed Funding Analysis:");
+    println!("-------------------------");
+    let funding_report = backtest.funding_report()?;
+    println!("Total Funding Received: ${:.2}", funding_report.total_funding_received);
+    println!("Total Funding Paid: ${:.2}", funding_report.total_funding_paid);
+    println!("Net Funding PnL: ${:.2}", funding_report.net_funding_pnl);
+    println!("Payment Count: {}", funding_report.payment_count);
+    println!("Average Rate: {:.4}%", funding_report.average_rate * 100.0);
     
     println!("\nExample completed successfully!");
     

@@ -43,7 +43,7 @@
 //! ### Basic Backtesting Example
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //! use chrono::{DateTime, FixedOffset, Utc};
 //!
 //! #[tokio::main]
@@ -85,7 +85,7 @@
 //! ### Funding Arbitrage Strategy Example
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), HyperliquidBacktestError> {
@@ -119,7 +119,7 @@
 //! ## Migration from rs-backtester
 //!
 //! This library is designed as a drop-in enhancement to rs-backtester. See the 
-//! [migration guide](https://docs.rs/hyperliquid-backtester/latest/hyperliquid_backtester/migration/index.html) 
+//! [migration guide](https://docs.rs/hyperliquid-backtester/latest/hyperliquid_backtest/migration/index.html) 
 //! for detailed instructions on upgrading existing rs-backtester code.
 //!
 //! ## Error Handling
@@ -128,7 +128,7 @@
 //! provides detailed context and suggestions for resolution:
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! match HyperliquidData::fetch("INVALID", "1h", start, end).await {
 //!     Ok(data) => println!("Success!"),
@@ -176,7 +176,7 @@ pub mod logging {
     //! ## Basic Usage
     //!
     //! ```rust
-    //! use hyperliquid_backtester::logging::init_logger;
+    //! use hyperliquid_backtest::logging::init_logger;
     //!
     //! // Initialize with default settings (INFO level)
     //! init_logger();
@@ -222,7 +222,7 @@ pub mod logging {
     /// # Examples
     ///
     /// ```rust
-    /// use hyperliquid_backtester::logging::init_logger;
+    /// use hyperliquid_backtest::logging::init_logger;
     ///
     /// init_logger();
     /// log::info!("Logger initialized successfully");
@@ -240,14 +240,14 @@ pub mod logging {
     /// # Examples
     ///
     /// ```rust
-    /// use hyperliquid_backtester::logging::init_logger_with_level;
+    /// use hyperliquid_backtest::logging::init_logger_with_level;
     ///
     /// init_logger_with_level("debug");
     /// log::debug!("Debug logging enabled");
     /// ```
     pub fn init_logger_with_level(level: &str) {
         let env_filter = EnvFilter::try_from_default_env()
-            .unwrap_or_else(|_| EnvFilter::new(format!("hyperliquid_backtester={}", level)));
+            .unwrap_or_else(|_| EnvFilter::new(format!("hyperliquid_backtest={}", level)));
 
         let format = env::var("HYPERLIQUID_LOG_FORMAT").unwrap_or_else(|_| "pretty".to_string());
         let log_file = env::var("HYPERLIQUID_LOG_FILE").ok();
@@ -315,7 +315,7 @@ pub mod logging {
     pub fn init_test_logger() {
         let _ = tracing_subscriber::fmt()
             .with_test_writer()
-            .with_env_filter("hyperliquid_backtester=warn")
+            .with_env_filter("hyperliquid_backtest=warn")
             .try_init();
     }
 
@@ -332,7 +332,7 @@ pub mod logging {
     /// # Examples
     ///
     /// ```rust
-    /// use hyperliquid_backtester::logging::performance_span;
+    /// use hyperliquid_backtest::logging::performance_span;
     /// use tracing::Instrument;
     ///
     /// async fn fetch_data() -> Result<(), Box<dyn std::error::Error>> {

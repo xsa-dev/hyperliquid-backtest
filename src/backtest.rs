@@ -17,7 +17,7 @@
 //! ### Basic Enhanced Backtesting
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), HyperliquidBacktestError> {
@@ -51,7 +51,7 @@
 //! ### Custom Commission Structure
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! // Create custom commission structure
 //! let commission = HyperliquidCommission::new(
@@ -71,7 +71,7 @@
 //! ### Funding-Only Analysis
 //!
 //! ```rust,no_run
-//! use hyperliquid_backtester::prelude::*;
+//! use hyperliquid_backtest::prelude::*;
 //!
 //! // Disable trading fees to analyze funding impact only
 //! let commission = HyperliquidCommission::new(0.0, 0.0, true);

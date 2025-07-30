@@ -2,16 +2,16 @@ use std::collections::HashMap;
 use chrono::{DateTime, FixedOffset, Utc};
 use tokio::time::{sleep, Duration};
 
-use hyperliquid_backtester::prelude::*;
-use hyperliquid_backtester::strategies::{
+use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::strategies::{
     TradingStrategy, FundingAwareConfig,
     create_funding_arbitrage_strategy, create_enhanced_sma_strategy
 };
-use hyperliquid_backtester::unified_data_impl::{
+use hyperliquid_backtest::unified_data_impl::{
     MarketData, OrderRequest, OrderResult, FundingPayment,
     OrderSide, OrderType, OrderStatus, TimeInForce
 };
-use hyperliquid_backtester::trading_mode::{TradingMode, TradingModeManager};
+use hyperliquid_backtest::trading_mode::{TradingMode, TradingModeManager};
 
 // Example function to demonstrate using strategies in backtest mode
 async fn run_backtest_example() -> Result<(), HyperliquidBacktestError> {
