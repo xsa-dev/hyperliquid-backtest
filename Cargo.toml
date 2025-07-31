@@ -82,7 +82,7 @@ hyperliquid_rust_sdk = "0.6.0"
 rs-backtester = "0.1.2"
 
 # HTTP client
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
 
 # Logging and debugging
 log = "0.4"
@@ -99,18 +99,21 @@ uuid = { version = "1.0", features = ["v4"] }
 # Temporary file handling
 tempfile = "3.8"
 
-[dev-dependencies]
-tokio-test = "0.4"
-criterion = { version = "0.5", features = ["html_reports"] }
-mockito = "1.2"
-wiremock = "0.5"
-proptest = "1.4"
-memory-stats = "1.1"
-sysinfo = "0.29"
-futures = "0.3"
-tempfile = "3.8"
-tracing = "0.1"
-tracing-subscriber = "0.3"
+openssl = { version = "0.10", features = ["vendored"] }
+openssl-sys = { version = "0.9", features = ["vendored"] }
+
+# [dev-dependencies]
+# tokio-test = "0.4"
+# criterion = { version = "0.5", features = ["html_reports"] }
+# mockito = "1.2"
+# wiremock = "0.5"
+# proptest = "1.4"
+# memory-stats = "1.1"
+# sysinfo = "0.29"
+# futures = "0.3"
+# tempfile = "3.8"
+# tracing = "0.1"
+# tracing-subscriber = "0.3"
 
 [[example]]
 name = "mode_reporting_example"
