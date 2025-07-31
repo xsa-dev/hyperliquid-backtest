@@ -1,12 +1,13 @@
-use chrono::Utc;
+use chrono::{Duration, TimeZone, Utc, FixedOffset};
+use hyperliquid_rust_sdk::{BaseUrl, InfoClient};
 use hyperliquid_backtest::prelude::*;
 
-/// # Basic Backtest Example
+/// # Basic Backtest Example (Fixed with Working API)
 ///
 /// This example demonstrates how to run a simple backtest using the Hyperliquid backtester.
 /// It shows:
 /// - Setting up logging for debugging and monitoring
-/// - Fetching historical data from Hyperliquid API
+/// - Fetching historical data from Hyperliquid API using the correct SDK
 /// - Creating a basic SMA crossover strategy
 /// - Configuring backtest parameters with realistic commission rates
 /// - Running the backtest with funding rates enabled
@@ -14,7 +15,13 @@ use hyperliquid_backtest::prelude::*;
 /// - Comparing performance with and without funding rates
 /// - Exporting results to CSV for further analysis
 ///
-/// The example uses a 10/30 SMA crossover strategy on BTC/USD data over the last 90 days.
+/// The example uses a 10/30 SMA crossover strategy on BTC/USD data over the last 30 days.
+///
+/// ## Supported Symbols
+///
+/// Based on Hyperliquid API testing, the following symbols work:
+/// - BTC, ETH, SOL, AVAX, ATOM (all return data)
+/// - All intervals: 1m, 5m, 15m, 1h, 4h, 1d
 ///
 /// ## Usage
 ///
@@ -40,20 +47,69 @@ async fn main() -> Result<()> {
     
     log::info!("Starting Hyperliquid Basic Backtest Example");
     
-    println!("🚀 Hyperliquid Basic Backtest Example");
-    println!("=====================================\n");
+    println!("🚀 Hyperliquid Basic Backtest Example (Fixed)");
+    println!("============================================\n");
 
-    // Fetch historical data for BTC with funding rates
-    let end_time = Utc::now().timestamp() as u64;
-    let start_time = end_time - (90 * 24 * 3600); // 90 days of data
+    // Define time range for data fetching (last 30 days for faster testing)
+    let end_time = Utc::now();
+    let start_time = end_time - Duration::days(30);
+    let start_timestamp = start_time.timestamp_millis() as u64;
+    let end_timestamp = end_time.timestamp_millis() as u64;
+
+    println!("Fetching BTC/USD data for the last 30 days...");
+    println!("Time range: {} to {}", 
+        start_time.format("%Y-%m-%d %H:%M"),
+        end_time.format("%Y-%m-%d %H:%M"));
+
+    // Initialize Hyperliquid client
+    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await?;
     
-    println!("Fetching BTC/USD data for the last 90 days...");
-    let data = HyperliquidData::fetch("BTC", "1h", start_time, end_time).await?;
-    
-    println!("Data fetched: {} data points from {} to {}\n", 
+    // Fetch OHLCV data using the working SDK
+    let candles = info_client
+        .candles_snapshot("BTC".to_string(), "1h".to_string(), start_timestamp, end_timestamp)
+        .await?;
+
+    println!("✅ Successfully fetched {} candles!", candles.len());
+
+    if candles.is_empty() {
+        return Err(HyperliquidBacktestError::api_error("No data received from API"));
+    }
+
+    // Convert candles to our internal format
+    let mut datetime = Vec::new();
+    let mut open = Vec::new();
+    let mut high = Vec::new();
+    let mut low = Vec::new();
+    let mut close = Vec::new();
+    let mut volume = Vec::new();
+
+    for candle in &candles {
+        let timestamp = Utc.timestamp_millis_opt(candle.time_open as i64).unwrap()
+            .with_timezone(&FixedOffset::east_opt(0).unwrap());
+        
+        datetime.push(timestamp);
+        open.push(candle.open.parse::<f64>().unwrap_or(0.0));
+        high.push(candle.high.parse::<f64>().unwrap_or(0.0));
+        low.push(candle.low.parse::<f64>().unwrap_or(0.0));
+        close.push(candle.close.parse::<f64>().unwrap_or(0.0));
+        volume.push(candle.vlm.parse::<f64>().unwrap_or(0.0));
+    }
+
+    // Create our internal Data struct
+    let data = HyperliquidData::with_ohlc_data(
+        "BTC".to_string(),
+        datetime,
+        open,
+        high,
+        low,
+        close,
+        volume,
+    )?;
+
+    println!("Data converted: {} data points from {} to {}\n", 
         data.len(),
-        data.datetime.first().unwrap().format("%Y-%m-%d %H:%M"),
-        data.datetime.last().unwrap().format("%Y-%m-%d %H:%M"));
+        data.datetime.first().map(|d| d.format("%Y-%m-%d %H:%M").to_string()).unwrap_or_else(|| "N/A".to_string()),
+        data.datetime.last().map(|d| d.format("%Y-%m-%d %H:%M").to_string()).unwrap_or_else(|| "N/A".to_string()));
     
     // Create a simple SMA crossover strategy using the enhanced_sma_cross function
     println!("Setting up SMA crossover strategy (10/30)...");
@@ -78,8 +134,11 @@ async fn main() -> Result<()> {
         initial_capital,
         commission.clone(),
     );
+
+    // Initialize the base backtest first
+    backtest.initialize_base_backtest()?;
     
-    // Run backtest with funding rates
+    // Then calculate with funding rates
     backtest.calculate_with_funding()?;
     
     // Get enhanced report
@@ -141,7 +200,8 @@ async fn main() -> Result<()> {
         initial_capital,
         commission_no_funding,
     );
-    
+
+    backtest_no_funding.initialize_base_backtest()?;
     backtest_no_funding.calculate_with_funding()?;
     
     let report_no_funding = backtest_no_funding.enhanced_report()?;
