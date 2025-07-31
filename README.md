@@ -10,7 +10,7 @@ A comprehensive Rust library that integrates Hyperliquid trading data with the r
 
 ## ✨ Features
 
-- 🚀 **Async Data Fetching**: Efficiently fetch historical OHLC data from Hyperliquid API
+- 🚀 **Async Data Fetching**: Efficiently fetch historical OHLC data from Hyperliquid API using the official SDK
 - 💰 **Funding Rate Support**: Complete funding rate data and perpetual futures mechanics
 - 🔄 **Seamless Integration**: Drop-in replacement for rs-backtester with enhanced features
 - 📊 **Enhanced Reporting**: Comprehensive metrics including funding PnL and arbitrage analysis
@@ -19,6 +19,11 @@ A comprehensive Rust library that integrates Hyperliquid trading data with the r
 - 📈 **Advanced Strategies**: Built-in funding arbitrage and enhanced technical indicators
 - 🔧 **Developer Friendly**: Extensive documentation, examples, and migration guides
 - 📝 **Structured Logging**: Built-in logging and debugging support with configurable output
+- 🔴 **Real-Time Monitoring**: Live trading monitoring with alerts and performance tracking
+- 📱 **Trading Modes**: Support for backtesting, paper trading, and live trading modes
+- 🎯 **Risk Management**: Advanced risk controls and position management
+- 📊 **Unified Data Interface**: Consistent API across different trading modes
+- 🔔 **Alert System**: Configurable alerts for market conditions and performance metrics
 
 ## 📦 Installation
 
@@ -26,7 +31,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-hyperliquid-backtest = "0.1"
+hyperliquid-backtest = "0.1.1"
 tokio = { version = "1.0", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
 ```
@@ -40,28 +45,96 @@ chrono = { version = "0.4", features = ["serde"] }
 
 ## 🚀 Quick Start
 
-### Basic Backtesting Example
+### Working Data Fetching Example
+
+```rust
+use hyperliquid_rust_sdk::{BaseUrl, InfoClient};
+use chrono::{Duration, TimeZone, Utc};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize Hyperliquid client
+    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await?;
+    
+    // Define time range (last 7 days)
+    let now = Utc::now();
+    let start_time = (now - Duration::days(7)).timestamp_millis() as u64;
+    let end_time = now.timestamp_millis() as u64;
+    
+    // Fetch BTC/USDC 1-hour candles
+    let candles = info_client
+        .candles_snapshot("BTC".to_string(), "1h".to_string(), start_time, end_time)
+        .await?;
+    
+    println!("✅ Successfully fetched {} candles!", candles.len());
+    
+    // Access candle data
+    if let Some(first_candle) = candles.first() {
+        println!("First candle: Open=${}, Close=${}, Volume={}", 
+            first_candle.open, first_candle.close, first_candle.vlm);
+    }
+    
+    Ok(())
+}
+```
+
+### Working Backtesting Example
 
 ```rust
 use hyperliquid_backtest::prelude::*;
-use chrono::{DateTime, FixedOffset, Utc};
+use hyperliquid_rust_sdk::{BaseUrl, InfoClient};
+use chrono::{Duration, TimeZone, Utc, FixedOffset};
 
 #[tokio::main]
 async fn main() -> Result<(), HyperliquidBacktestError> {
-    // Initialize logging (optional but recommended)
+    // Initialize logging
     init_logger();
     
-    // Define time range (last 30 days)
-    let end_time = Utc::now().timestamp() as u64;
-    let start_time = end_time - (30 * 24 * 60 * 60); // 30 days ago
+    // Fetch data using the working SDK approach
+    let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await?;
     
-    // Fetch historical data for BTC with 1-hour intervals
-    let data = HyperliquidData::fetch("BTC", "1h", start_time, end_time).await?;
+    let end_time = Utc::now();
+    let start_time = end_time - Duration::days(7);
+    let start_timestamp = start_time.timestamp_millis() as u64;
+    let end_timestamp = end_time.timestamp_millis() as u64;
     
-    // Create a simple moving average crossover strategy
-    let strategy = enhanced_sma_cross(10, 20, Default::default())?;
+    let candles = info_client
+        .candles_snapshot("BTC".to_string(), "1h".to_string(), start_timestamp, end_timestamp)
+        .await?;
     
-    // Set up backtest with $10,000 initial capital
+    // Convert to internal format
+    let mut datetime = Vec::new();
+    let mut open = Vec::new();
+    let mut high = Vec::new();
+    let mut low = Vec::new();
+    let mut close = Vec::new();
+    let mut volume = Vec::new();
+    
+    for candle in &candles {
+        let timestamp = Utc.timestamp_millis_opt(candle.time_open as i64).unwrap()
+            .with_timezone(&FixedOffset::east_opt(0).unwrap());
+        
+        datetime.push(timestamp);
+        open.push(candle.open.parse::<f64>().unwrap_or(0.0));
+        high.push(candle.high.parse::<f64>().unwrap_or(0.0));
+        low.push(candle.low.parse::<f64>().unwrap_or(0.0));
+        close.push(candle.close.parse::<f64>().unwrap_or(0.0));
+        volume.push(candle.vlm.parse::<f64>().unwrap_or(0.0));
+    }
+    
+    let data = HyperliquidData::with_ohlc_data(
+        "BTC".to_string(),
+        datetime,
+        open,
+        high,
+        low,
+        close,
+        volume,
+    )?;
+    
+    // Create strategy and run backtest
+    let strategy = enhanced_sma_cross(data.to_rs_backtester_data(), 10, 30, Default::default());
+    
     let mut backtest = HyperliquidBacktest::new(
         data,
         strategy,
@@ -69,134 +142,164 @@ async fn main() -> Result<(), HyperliquidBacktestError> {
         HyperliquidCommission::default(),
     )?;
     
-    // Run backtest including funding calculations
     backtest.calculate_with_funding()?;
-    
-    // Generate comprehensive report
     let report = backtest.enhanced_report()?;
     
     println!("📊 Backtest Results:");
     println!("Total Return: {:.2}%", report.total_return * 100.0);
     println!("Trading PnL: ${:.2}", report.trading_pnl);
-    println!("Funding PnL: ${:.2}", report.funding_pnl);
     println!("Sharpe Ratio: {:.3}", report.sharpe_ratio);
     
     Ok(())
 }
 ```
 
-### Funding Arbitrage Strategy
+### Real-Time Monitoring Example
 
 ```rust
 use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::real_time_monitoring::{MonitoringServer, MonitoringManager};
+use hyperliquid_backtest::live_trading::AlertLevel;
 
 #[tokio::main]
-async fn main() -> Result<(), HyperliquidBacktestError> {
-    init_logger_with_level("debug");
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize monitoring server
+    let port = 8080;
+    let mut server = MonitoringServer::new(port);
+    server.start().await?;
     
-    let end_time = Utc::now().timestamp() as u64;
-    let start_time = end_time - (7 * 24 * 60 * 60); // 7 days ago
+    // Create monitoring manager
+    let mut manager = MonitoringManager::new(TradingMode::LiveTrade);
     
-    let data = HyperliquidData::fetch("ETH", "1h", start_time, end_time).await?;
+    // Add alert handler
+    manager.add_alert_handler(|alert| {
+        println!("Alert: {} - {}", alert.level, alert.message);
+    });
     
-    // Create funding arbitrage strategy with 0.01% threshold
-    let strategy = funding_arbitrage_strategy(0.0001)?;
+    // Send alerts
+    manager.send_alert(AlertLevel::Info, "System started", None, None)?;
+    manager.send_alert(AlertLevel::Warning, "High volatility detected", Some("BTC"), None)?;
     
-    let mut backtest = HyperliquidBacktest::new(
-        data,
-        strategy,
-        50000.0, // Higher capital for arbitrage
-        HyperliquidCommission::default(),
+    // Update performance metrics
+    manager.update_performance_metrics(
+        10000.0, // current_balance
+        100.0,   // daily_pnl
+        500.0,   // total_pnl
+        0.6,     // win_rate
+        1.5,     // sharpe_ratio
+        5.0,     // max_drawdown_pct
+        2        // positions_count
     )?;
     
-    backtest.calculate_with_funding()?;
+    println!("Monitoring server running on port {}", port);
     
-    // Get detailed funding analysis
-    let funding_report = backtest.funding_report()?;
-    
-    println!("💰 Funding Arbitrage Results:");
-    println!("Total Funding Received: ${:.2}", funding_report.total_funding_received);
-    println!("Total Funding Paid: ${:.2}", funding_report.total_funding_paid);
-    println!("Net Funding PnL: ${:.2}", funding_report.net_funding_pnl);
-    println!("Average Funding Rate: {:.4}%", funding_report.avg_funding_rate * 100.0);
-    
+    // Keep server running
+    tokio::signal::ctrl_c().await?;
     Ok(())
 }
 ```
 
 ## 📚 Usage Guide
 
-### Data Fetching
+### Data Fetching with Working SDK
 
-The library supports fetching historical data for various cryptocurrencies and time intervals:
+The library now uses the official Hyperliquid Rust SDK for reliable data fetching:
 
 ```rust
-use hyperliquid_backtest::prelude::*;
+use hyperliquid_rust_sdk::{BaseUrl, InfoClient};
+
+// Initialize client
+let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await?;
+
+// Fetch data for different intervals
+let candles = info_client
+    .candles_snapshot("BTC".to_string(), "1h".to_string(), start_time, end_time)
+    .await?;
 
 // Supported intervals: "1m", "5m", "15m", "1h", "4h", "1d"
-let data = HyperliquidData::fetch("BTC", "1h", start_time, end_time).await?;
-
-// Access OHLC data
-println!("Number of candles: {}", data.datetime.len());
-println!("Latest close price: ${:.2}", data.close.last().unwrap());
-
-// Access funding rate data
-if let Some(latest_funding) = data.funding_rates.last() {
-    println!("Latest funding rate: {:.4}%", latest_funding * 100.0);
-}
+// Supported coins: BTC, ETH, SOL, AVAX, MATIC, ATOM, and many more
 ```
 
-### Supported Trading Pairs
+### Trading Modes
 
-The library supports all major cryptocurrencies available on Hyperliquid:
-
-- **Major Pairs**: BTC, ETH, SOL, AVAX, DOGE, etc.
-- **DeFi Tokens**: UNI, AAVE, COMP, MKR, etc.
-- **Layer 1s**: ADA, DOT, ATOM, NEAR, etc.
-- **Meme Coins**: SHIB, PEPE, WIF, etc.
-
-### Commission Structure
-
-Configure realistic trading fees based on Hyperliquid's fee structure:
+The library supports multiple trading modes through the unified interface:
 
 ```rust
 use hyperliquid_backtest::prelude::*;
 
-// Default Hyperliquid fees
-let commission = HyperliquidCommission::default(); // 0.02% maker, 0.05% taker
+// Backtesting mode
+let backtest_mode = TradingMode::Backtest;
+let mut backtest = HyperliquidBacktest::new(data, strategy, 10000.0, commission)?;
 
-// Custom fee structure
-let custom_commission = HyperliquidCommission {
-    maker_rate: 0.0001,  // 0.01% maker fee
-    taker_rate: 0.0003,  // 0.03% taker fee
-    funding_enabled: true,
-};
+// Paper trading mode
+let paper_mode = TradingMode::PaperTrade;
+let mut paper_trader = PaperTradingEngine::new(config)?;
+
+// Live trading mode (with safety controls)
+let live_mode = TradingMode::LiveTrade;
+let mut live_trader = LiveTradingEngine::new(config)?;
 ```
 
-### Strategy Development
+### Real-Time Monitoring
 
-Create custom strategies using the built-in framework:
+Monitor your trading performance in real-time:
 
 ```rust
-use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::real_time_monitoring::*;
 
-// Enhanced SMA crossover with funding awareness
-let strategy = enhanced_sma_cross(
-    10,  // Short period
-    20,  // Long period
-    FundingAwareConfig {
-        funding_weight: 0.1,
-        min_funding_threshold: 0.0001,
+// Start monitoring server
+let mut server = MonitoringServer::new(8080);
+server.start().await?;
+
+// Create monitoring manager
+let mut manager = MonitoringManager::new(TradingMode::LiveTrade);
+
+// Add custom alert handlers
+manager.add_alert_handler(|alert| {
+    match alert.level {
+        AlertLevel::Critical => send_sms_alert(&alert.message),
+        AlertLevel::Warning => send_email_alert(&alert.message),
+        _ => log_alert(&alert),
     }
-)?;
+});
 
-// Funding arbitrage strategy
-let arb_strategy = funding_arbitrage_strategy(0.0005)?; // 0.05% threshold
+// Update metrics
+manager.update_performance_metrics(
+    current_balance,
+    daily_pnl,
+    total_pnl,
+    win_rate,
+    sharpe_ratio,
+    max_drawdown_pct,
+    positions_count
+)?;
+```
+
+### Risk Management
+
+Advanced risk controls for live trading:
+
+```rust
+use hyperliquid_backtest::risk_manager::*;
+
+let risk_config = RiskConfig {
+    max_position_size_pct: 0.1,      // Max 10% per position
+    max_daily_loss_pct: 0.02,        // Max 2% daily loss
+    stop_loss_pct: 0.05,             // 5% stop loss
+    take_profit_pct: 0.1,            // 10% take profit
+    max_leverage: 3.0,               // Max 3x leverage
+    max_positions: 5,                // Max 5 concurrent positions
+    max_drawdown_pct: 0.2,           // Max 20% drawdown
+    use_trailing_stop: true,
+    trailing_stop_distance_pct: Some(0.02),
+};
+
+let risk_manager = RiskManager::new(risk_config);
 ```
 
 ### Enhanced Reporting
 
-Generate comprehensive reports with funding-specific metrics:
+Generate comprehensive reports with new metrics:
 
 ```rust
 // Standard enhanced report
@@ -209,27 +312,42 @@ let funding_report = backtest.funding_report()?;
 println!("Funding Efficiency: {:.2}", funding_report.funding_efficiency);
 println!("Funding Volatility: {:.4}", funding_report.funding_volatility);
 
-// Export to CSV
+// Mode-specific reporting
+let mode_report = backtest.mode_report()?;
+println!("Win Rate: {:.2}%", mode_report.win_rate * 100.0);
+println!("Average Trade Duration: {:.1} hours", mode_report.avg_trade_duration_hours);
+
+// Export to CSV with enhanced data
 backtest.export_enhanced_csv("backtest_results.csv")?;
 ```
 
-### Logging and Debugging
+### Unified Data Interface
 
-Configure logging for development and production:
+Consistent API across all trading modes:
 
 ```rust
-use hyperliquid_backtest::prelude::*;
+use hyperliquid_backtest::unified_data::*;
 
-// Basic logging setup
-init_logger(); // INFO level by default
+// Create order requests
+let market_order = OrderRequest::market("BTC", OrderSide::Buy, 1.0);
+let limit_order = OrderRequest::limit("ETH", OrderSide::Sell, 2.0, 3000.0)
+    .reduce_only()
+    .with_time_in_force(TimeInForce::FillOrKill);
 
-// Debug logging
-init_logger_with_level("debug");
+// Market data
+let market_data = MarketData::new(
+    "BTC",
+    50000.0,
+    49990.0,
+    50010.0,
+    100.0,
+    Utc::now(),
+);
 
-// Environment variable control
-// RUST_LOG=debug cargo run --example basic_backtest
-// HYPERLIQUID_LOG_FORMAT=json cargo run
-// HYPERLIQUID_LOG_FILE=backtest.log cargo run
+// Position management
+let mut position = Position::new("BTC", 1.0, 50000.0, 51000.0, Utc::now());
+position.update_price(52000.0);
+position.apply_funding_payment(100.0);
 ```
 
 ## 🔄 API Stability
@@ -240,7 +358,7 @@ This crate follows [Semantic Versioning (SemVer)](https://semver.org/):
 - **Minor version** (0.1.x → 0.2.0): New features, backward compatible
 - **Patch version** (0.1.0 → 0.1.1): Bug fixes, backward compatible
 
-**Current version: 0.1.0** (Pre-1.0 development phase)
+**Current version: 0.1.1** (Pre-1.0 development phase)
 
 ### Stability Guarantees
 
@@ -248,23 +366,43 @@ This crate follows [Semantic Versioning (SemVer)](https://semver.org/):
 - ✅ **Data Structures**: `HyperliquidData`, `HyperliquidBacktest`, and `HyperliquidCommission` are stable
 - ✅ **Error Types**: `HyperliquidBacktestError` variants may be added but not removed in minor versions
 - ✅ **Strategy Interface**: `HyperliquidStrategy` trait is stable for implementors
+- ✅ **Unified Interface**: `OrderRequest`, `MarketData`, `Position` structures are stable
 
 ## 📖 Examples
 
 The library includes comprehensive examples in the `examples/` directory:
 
-- **`basic_backtest.rs`**: Simple backtesting workflow
+### Working Examples (Recommended)
+- **`working_data_fetch.rs`**: Reliable data fetching using the official SDK
+- **`simple_working_backtest.rs`**: Complete working backtest example
+- **`basic_backtest.rs`**: Enhanced basic backtesting workflow
+
+### Advanced Features
+- **`real_time_monitoring_example.rs`**: Live monitoring with alerts
+- **`trading_mode_example.rs`**: Different trading modes demonstration
+- **`paper_trading_example.rs`**: Paper trading with risk management
+- **`live_trading_safety_example.rs`**: Safe live trading practices
 - **`funding_arbitrage_advanced.rs`**: Advanced funding arbitrage strategies
 - **`multi_asset_backtest.rs`**: Multi-asset portfolio backtesting
+- **`strategy_comparison.rs`**: Compare multiple strategies
+- **`performance_comparison.rs`**: Performance analysis tools
+
+### Data and Export
 - **`csv_export_example.rs`**: Data export and analysis
-- **`performance_comparison.rs`**: Strategy performance comparison
-- **`simple_data_fetching.rs`**: Data fetching and exploration
+- **`enhanced_csv_export_example.rs`**: Advanced CSV export with funding data
+- **`unified_data_example.rs`**: Unified data interface usage
 
 Run examples with:
 
 ```bash
-cargo run --example basic_backtest
-cargo run --example funding_arbitrage_advanced
+# Working examples (recommended to start with)
+cargo run --example working_data_fetch
+cargo run --example simple_working_backtest
+
+# Advanced features
+cargo run --example real_time_monitoring_example
+cargo run --example trading_mode_example
+cargo run --example paper_trading_example
 ```
 
 ## 🛠️ Advanced Features
@@ -361,6 +499,7 @@ Benchmark results on a modern system:
 - **Data Fetching**: ~500ms for 30 days of 1h data
 - **Backtesting**: ~50ms for 1000 trades with funding calculations
 - **Memory Usage**: ~10MB for 30 days of 1h OHLC + funding data
+- **Real-Time Monitoring**: <1ms latency for alert processing
 
 ## 🤝 Contributing
 
@@ -402,6 +541,8 @@ This software is for educational and research purposes only. Trading cryptocurre
 - Be aware of API rate limits when fetching large amounts of data
 - Funding rates and market conditions can change rapidly
 - Consider transaction costs and slippage in live trading
+- Use paper trading mode to test strategies before live deployment
+- Monitor your positions and set appropriate risk controls
 
 ## 🔗 Links
 
