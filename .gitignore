@@ -73,5 +73,8 @@ node_modules/
 # Test results
 test-results/
 
+# CSV files
+*.csv
+
 # 
 target
