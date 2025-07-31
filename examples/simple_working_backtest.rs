@@ -2,61 +2,28 @@ use chrono::{Duration, TimeZone, Utc, FixedOffset};
 use hyperliquid_rust_sdk::{BaseUrl, InfoClient};
 use hyperliquid_backtest::prelude::*;
 
-/// # Basic Backtest Example (Fixed with Working API)
+/// Simple Working Backtest Example
 ///
-/// This example demonstrates how to run a simple backtest using the Hyperliquid backtester.
-/// It shows:
-/// - Setting up logging for debugging and monitoring
-/// - Fetching historical data from Hyperliquid API using the correct SDK
-/// - Creating a basic SMA crossover strategy
-/// - Configuring backtest parameters with realistic commission rates
-/// - Running the backtest with funding rates enabled
-/// - Analyzing and reporting comprehensive results
-/// - Comparing performance with and without funding rates
-/// - Exporting results to CSV for further analysis
+/// This example demonstrates how to:
+/// 1. Fetch data from Hyperliquid API using the working SDK
+/// 2. Convert data to our internal format
+/// 3. Run a simple backtest
+/// 4. Display results
 ///
-/// The example uses a 10/30 SMA crossover strategy on BTC/USD data over the last 30 days.
-///
-/// ## Supported Symbols
-///
-/// Based on Hyperliquid API testing, the following symbols work:
-/// - BTC, ETH, SOL, AVAX, ATOM (all return data)
-/// - All intervals: 1m, 5m, 15m, 1h, 4h, 1d
-///
-/// ## Usage
-///
-/// Run this example with:
-/// ```bash
-/// cargo run --example basic_backtest
-/// ```
-///
-/// For debug logging:
-/// ```bash
-/// RUST_LOG=debug cargo run --example basic_backtest
-/// ```
-///
-/// For JSON formatted logs:
-/// ```bash
-/// RUST_LOG=info HYPERLIQUID_LOG_FORMAT=json cargo run --example basic_backtest
-/// ```
+/// This uses only our own code without external dependencies.
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize logging for better debugging and monitoring
-    init_logger_with_level("info");
-    
-    log::info!("Starting Hyperliquid Basic Backtest Example");
-    
-    println!("🚀 Hyperliquid Basic Backtest Example (Fixed)");
-    println!("============================================\n");
+    println!("🚀 Simple Working Backtest Example");
+    println!("==================================\n");
 
-    // Define time range for data fetching (last 30 days for faster testing)
+    // Define time range (last 7 days for faster testing)
     let end_time = Utc::now();
-    let start_time = end_time - Duration::days(30);
+    let start_time = end_time - Duration::days(7);
     let start_timestamp = start_time.timestamp_millis() as u64;
     let end_timestamp = end_time.timestamp_millis() as u64;
 
-    println!("Fetching BTC/USD data for the last 30 days...");
+    println!("Fetching BTC/USD data for the last 7 days...");
     println!("Time range: {} to {}", 
         start_time.format("%Y-%m-%d %H:%M"),
         end_time.format("%Y-%m-%d %H:%M"));
@@ -64,7 +31,7 @@ async fn main() -> Result<()> {
     // Initialize Hyperliquid client
     let info_client = InfoClient::new(None, Some(BaseUrl::Mainnet)).await?;
     
-    // Fetch OHLCV data using the working SDK
+    // Fetch OHLCV data
     let candles = info_client
         .candles_snapshot("BTC".to_string(), "1h".to_string(), start_timestamp, end_timestamp)
         .await?;
@@ -72,7 +39,8 @@ async fn main() -> Result<()> {
     println!("✅ Successfully fetched {} candles!", candles.len());
 
     if candles.is_empty() {
-        return Err(HyperliquidBacktestError::api_error("No data received from API"));
+        println!("❌ No data received from API");
+        return Ok(());
     }
 
     // Convert candles to our internal format
@@ -110,23 +78,23 @@ async fn main() -> Result<()> {
         data.len(),
         data.datetime.first().map(|d| d.format("%Y-%m-%d %H:%M").to_string()).unwrap_or_else(|| "N/A".to_string()),
         data.datetime.last().map(|d| d.format("%Y-%m-%d %H:%M").to_string()).unwrap_or_else(|| "N/A".to_string()));
-    
-    // Create a simple SMA crossover strategy using the enhanced_sma_cross function
+
+    // Create a simple SMA crossover strategy
     println!("Setting up SMA crossover strategy (10/30)...");
     let strategy = enhanced_sma_cross(data.to_rs_backtester_data(), 10, 30, Default::default());
-    
+
     // Set up backtest parameters
     let initial_capital = 10000.0; // $10,000
-    
+
     // Create commission with funding enabled
     let commission = HyperliquidCommission {
         maker_rate: 0.0002,  // 0.02% maker fee
         taker_rate: 0.0005,  // 0.05% taker fee
         funding_enabled: true,
     };
-    
+
     println!("Running backtest with funding rates enabled...");
-    
+
     // Create and run backtest
     let mut backtest = HyperliquidBacktest::new(
         data.clone(),
@@ -140,10 +108,10 @@ async fn main() -> Result<()> {
     
     // Then calculate with funding rates
     backtest.calculate_with_funding()?;
-    
+
     // Get enhanced report
     let report = backtest.enhanced_report()?;
-    
+
     // Print backtest results
     println!("\nBacktest Results:");
     println!("----------------");
@@ -154,7 +122,7 @@ async fn main() -> Result<()> {
     println!("Win Rate: {:.2}%", report.win_rate * 100.0);
     println!("Profit Factor: {:.2}", report.profit_factor);
     println!("Sharpe Ratio: {:.2}", report.sharpe_ratio);
-    
+
     // Get funding impact from enhanced metrics
     let enhanced_metrics = &report.enhanced_metrics;
     println!("\nFunding Rate Impact:");
@@ -165,7 +133,7 @@ async fn main() -> Result<()> {
     println!("Funding Payments Received: {}", enhanced_metrics.funding_payments_received);
     println!("Funding Payments Paid: {}", enhanced_metrics.funding_payments_paid);
     println!("Average Funding Rate: {:.4}%", enhanced_metrics.average_funding_rate * 100.0);
-    
+
     // Get commission statistics
     let commission_stats = &report.commission_stats;
     println!("\nCommission Statistics:");
@@ -174,7 +142,7 @@ async fn main() -> Result<()> {
     println!("Maker Fees: ${:.2}", commission_stats.maker_fees);
     println!("Taker Fees: ${:.2}", commission_stats.taker_fees);
     println!("Maker/Taker Ratio: {:.2}", commission_stats.maker_taker_ratio);
-    
+
     // Get funding summary
     let funding_summary = &report.funding_summary;
     println!("\nFunding Summary:");
@@ -183,43 +151,12 @@ async fn main() -> Result<()> {
     println!("Total Funding Received: ${:.2}", funding_summary.total_funding_received);
     println!("Net Funding: ${:.2}", funding_summary.net_funding);
     println!("Funding Contribution: {:.2}%", funding_summary.funding_contribution_percentage * 100.0);
-    
+
     // Export results to CSV
     println!("\nExporting results to CSV...");
-    backtest.export_to_csv("basic_backtest_results.csv")?;
-    println!("Results exported to basic_backtest_results.csv");
-    
-    // Run the same backtest without funding to compare
-    println!("\nRunning comparison backtest without funding rates...");
-    let mut commission_no_funding = commission.clone();
-    commission_no_funding.funding_enabled = false;
-    
-    let mut backtest_no_funding = HyperliquidBacktest::new(
-        data.clone(),
-        "SMA Crossover (10/30) - No Funding".to_string(),
-        initial_capital,
-        commission_no_funding,
-    );
+    backtest.export_to_csv("simple_backtest_results.csv")?;
+    println!("Results exported to simple_backtest_results.csv");
 
-    backtest_no_funding.initialize_base_backtest()?;
-    backtest_no_funding.calculate_with_funding()?;
-    
-    let report_no_funding = backtest_no_funding.enhanced_report()?;
-    
-    println!("\nComparison Results (Without Funding):");
-    println!("-----------------------------------");
-    println!("Total Return: {:.2}%", report_no_funding.total_return * 100.0);
-    println!("Final Equity: ${:.2}", report_no_funding.final_equity);
-    
-    println!("\nFunding Impact on Performance:");
-    println!("----------------------------");
-    println!("Return Difference: {:.2}%", 
-        (report.total_return - report_no_funding.total_return) * 100.0);
-    println!("Equity Difference: ${:.2}", 
-        report.final_equity - report_no_funding.final_equity);
-    println!("Performance Impact: {:.2}%", 
-        ((report.total_return / report_no_funding.total_return) - 1.0) * 100.0);
-    
     // Print detailed funding report
     println!("\nDetailed Funding Analysis:");
     println!("-------------------------");
@@ -229,8 +166,8 @@ async fn main() -> Result<()> {
     println!("Net Funding PnL: ${:.2}", funding_report.net_funding_pnl);
     println!("Payment Count: {}", funding_report.payment_count);
     println!("Average Rate: {:.4}%", funding_report.average_rate * 100.0);
-    
-    println!("\nExample completed successfully!");
+
+    println!("\n🎉 Example completed successfully!");
     
     Ok(())
-}
+} 

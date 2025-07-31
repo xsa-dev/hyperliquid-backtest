@@ -876,7 +876,7 @@ impl HyperliquidData {
     
     /// Get list of popular trading pairs
     pub fn popular_trading_pairs() -> &'static [&'static str] {
-        &["BTC", "ETH", "SOL", "AVAX", "MATIC", "ARB", "OP", "DOGE", "LINK", "UNI"]
+        &["BTC", "ETH", "ATOM", "MATIC", "DYDX", "SOL", "AVAX", "BNB", "APE", "OP"]
     }
     
     /// Check if a trading pair is popular

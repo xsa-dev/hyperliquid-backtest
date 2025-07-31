@@ -70,6 +70,7 @@ serde_json = "1.0"
 
 # Error handling
 thiserror = "1.0"
+anyhow = "1.0"
 
 # CSV handling
 csv = "1.3"
