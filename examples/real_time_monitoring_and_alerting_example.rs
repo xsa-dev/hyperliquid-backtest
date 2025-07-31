@@ -1,20 +1,19 @@
 use std::time::Duration;
 use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
 use chrono::{Utc, FixedOffset};
 use tokio::time::sleep;
 
 use hyperliquid_backtest::prelude::*;
 use hyperliquid_backtest::real_time_monitoring::{
     MonitoringServer, MonitoringClient, MonitoringManager,
-    MonitoringMessage, TradeExecutionUpdate, ConnectionStatus,
-    PerformanceMetricsUpdate, ConnectionStatusUpdate
+    MonitoringMessage
 };
 use hyperliquid_backtest::mode_reporting::{
-    MonitoringDashboardData, RealTimePnLReport, AlertEntry,
-    ConnectionMetrics, RiskMetrics, PositionSnapshot, AccountSummary,
-    PositionSummary, OrderSummary, RiskSummary, SystemStatus, PerformanceSnapshot
+    MonitoringDashboardData, AlertEntry,
+    AccountSummary, PositionSummary, OrderSummary, RiskSummary, SystemStatus, PerformanceSnapshot
 };
-use hyperliquid_backtest::live_trading::{LiveTradingEngine, AlertLevel};
+use hyperliquid_backtest::live_trading::AlertLevel;
 use hyperliquid_backtest::unified_data::{OrderRequest, OrderResult, OrderSide, OrderType, OrderStatus, TimeInForce};
 use hyperliquid_backtest::trading_mode::TradingMode;
 
@@ -34,7 +33,7 @@ use hyperliquid_backtest::trading_mode::TradingMode;
 /// - Implementing custom monitoring dashboards
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     println!("Real-Time Monitoring and Alerting Setup Example");
     println!("==============================================\n");
 
@@ -42,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("1. Setting up monitoring server...");
     let port = 8080;
     let mut server = MonitoringServer::new(port);
-    server.start().await?;
+    server.start().await.map_err(|e| HyperliquidBacktestError::api_error(&format!("Server start error: {}", e)))?;
     println!("  Monitoring server started on port {}", port);
     
     // 2. Create monitoring manager for live trading
@@ -97,7 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("  Client received dashboard update");
             },
             MonitoringMessage::PnL(pnl) => {
-                println!("  Client received PnL update: ${:.2}", pnl.current_pnl);
+                println!("  Client received PnL update: ${:.2}", pnl.current_balance);
             },
             MonitoringMessage::TradeExecution(exec) => {
                 println!("  Client received trade execution: {} - {}", exec.order_id, exec.symbol);
@@ -113,23 +112,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
     
     // Connect client to server
-    client.connect().await?;
+    client.connect().await.map_err(|e| HyperliquidBacktestError::api_error(&format!("Client connect error: {}", e)))?;
     println!("  Monitoring client connected");
     
     // 5. Send different types of alerts
     println!("\n5. Sending different types of alerts...");
     
     // Info alert
-    manager.send_alert(AlertLevel::Info, "System started successfully", None, None)?;
+    manager.send_alert(AlertLevel::Info, "System started successfully", None, None)
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // Warning alert
-    manager.send_alert(AlertLevel::Warning, "High volatility detected on BTC", Some("BTC"), None)?;
+    manager.send_alert(AlertLevel::Warning, "High volatility detected on BTC", Some("BTC"), None)
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // Error alert
-    manager.send_alert(AlertLevel::Error, "API rate limit exceeded", None, None)?;
+    manager.send_alert(AlertLevel::Error, "API rate limit exceeded", None, None)
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // Critical alert
-    manager.send_alert(AlertLevel::Critical, "Margin call imminent on ETH position", Some("ETH"), Some("order123"))?;
+    manager.send_alert(AlertLevel::Critical, "Margin call imminent on ETH position", Some("ETH"), Some("order123"))
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // 6. Record trade executions
     println!("\n6. Recording trade executions...");
@@ -144,16 +147,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 quantity: 1.0,
                 price: None,
                 reduce_only: false,
-                time_in_force: TimeInForce::GoodTilCancelled,
+                time_in_force: TimeInForce::GoodTillCancel,
+                stop_price: None,
+                client_order_id: None,
+                parameters: HashMap::new(),
             },
             OrderResult {
                 order_id: "order1".to_string(),
-                status: OrderStatus::Filled,
+                symbol: "BTC".to_string(),
+                side: OrderSide::Buy,
+                order_type: OrderType::Market,
+                requested_quantity: 1.0,
                 filled_quantity: 1.0,
                 average_price: Some(50000.0),
+                status: OrderStatus::Filled,
+                timestamp: Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap()),
                 fees: Some(25.0),
-                timestamp: Utc::now().with_timezone(&FixedOffset::east(0)),
                 error: None,
+                client_order_id: None,
+                metadata: HashMap::new(),
             },
             120, // 120ms latency
         ),
@@ -165,16 +177,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 quantity: 10.0,
                 price: Some(3000.0),
                 reduce_only: false,
-                time_in_force: TimeInForce::GoodTilCancelled,
+                time_in_force: TimeInForce::GoodTillCancel,
+                stop_price: None,
+                client_order_id: None,
+                parameters: HashMap::new(),
             },
             OrderResult {
                 order_id: "order2".to_string(),
-                status: OrderStatus::PartiallyFilled,
+                symbol: "ETH".to_string(),
+                side: OrderSide::Buy,
+                order_type: OrderType::Limit,
+                requested_quantity: 10.0,
                 filled_quantity: 5.0,
                 average_price: Some(3000.0),
+                status: OrderStatus::PartiallyFilled,
+                timestamp: Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap()),
                 fees: Some(7.5),
-                timestamp: Utc::now().with_timezone(&FixedOffset::east(0)),
                 error: None,
+                client_order_id: None,
+                metadata: HashMap::new(),
             },
             95, // 95ms latency
         ),
@@ -186,23 +207,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 quantity: 100.0,
                 price: Some(100.0),
                 reduce_only: true,
-                time_in_force: TimeInForce::GoodTilCancelled,
+                time_in_force: TimeInForce::GoodTillCancel,
+                stop_price: None,
+                client_order_id: None,
+                parameters: HashMap::new(),
             },
             OrderResult {
                 order_id: "order3".to_string(),
-                status: OrderStatus::Rejected,
+                symbol: "SOL".to_string(),
+                side: OrderSide::Sell,
+                order_type: OrderType::Limit,
+                requested_quantity: 100.0,
                 filled_quantity: 0.0,
                 average_price: None,
+                status: OrderStatus::Rejected,
+                timestamp: Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap()),
                 fees: None,
-                timestamp: Utc::now().with_timezone(&FixedOffset::east(0)),
                 error: Some("Insufficient balance".to_string()),
+                client_order_id: None,
+                metadata: HashMap::new(),
             },
             50, // 50ms latency
         ),
     ];
     
     for (request, result, latency) in orders {
-        manager.record_trade_execution(&request, &result, latency)?;
+        manager.record_trade_execution(&request, &result, latency)
+            .map_err(|e| HyperliquidBacktestError::api_error(&format!("Record trade execution error: {}", e)))?;
     }
     
     // 7. Update performance metrics
@@ -216,7 +247,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         1.8,      // sharpe_ratio
         7.5,      // max_drawdown_pct
         3         // positions_count
-    )?;
+    ).map_err(|e| HyperliquidBacktestError::api_error(&format!("Update performance metrics error: {}", e)))?;
     
     // 8. Update connection metrics
     println!("\n8. Updating connection metrics...");
@@ -227,13 +258,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         120.0,   // avg_reconnection_time_ms
         45.0,    // api_latency_ms
         15.0     // ws_latency_ms
-    )?;
+    ).map_err(|e| HyperliquidBacktestError::api_error(&format!("Update connection metrics error: {}", e)))?;
     
     // 9. Create and update dashboard
     println!("\n9. Creating and updating dashboard...");
     
     let dashboard_data = create_sample_dashboard_data();
-    manager.update_dashboard(dashboard_data)?;
+    manager.update_dashboard(dashboard_data)
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Update dashboard error: {}", e)))?;
     
     // 10. Demonstrate real-time monitoring loop
     println!("\n10. Demonstrating real-time monitoring loop...");
@@ -248,7 +280,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("  Monitoring iteration {}", iteration);
         
         // Update performance metrics with slight variations
-        let balance_change = (rand::random::<f64>() - 0.5) * 1000.0;
+        let balance_change = (iteration as f64 * 0.1) % 1000.0 - 500.0; // Simple variation without rand
         let daily_pnl = 1500.0 + balance_change;
         let total_pnl = 5000.0 + balance_change;
         
@@ -260,11 +292,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             1.8,
             7.5,
             3
-        )?;
+        ).map_err(|e| HyperliquidBacktestError::api_error(&format!("Update performance metrics error: {}", e)))?;
         
         // Update connection metrics
-        let api_latency = 45.0 + (rand::random::<f64>() - 0.5) * 10.0;
-        let ws_latency = 15.0 + (rand::random::<f64>() - 0.5) * 5.0;
+        let api_latency = 45.0 + (iteration as f64 * 0.5) % 10.0 - 5.0;
+        let ws_latency = 15.0 + (iteration as f64 * 0.2) % 5.0 - 2.5;
         
         manager.update_connection_metrics(
             99.8,
@@ -272,22 +304,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             120.0,
             api_latency,
             ws_latency
-        )?;
+        ).map_err(|e| HyperliquidBacktestError::api_error(&format!("Update connection metrics error: {}", e)))?;
         
         // Occasionally send alerts
         if iteration % 3 == 0 {
             let alert_message = format!("Periodic system check #{}", iteration);
-            manager.send_alert(AlertLevel::Info, &alert_message, None, None)?;
+            manager.send_alert(AlertLevel::Info, &alert_message, None, None)
+                .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
         }
         
         // Update dashboard
         if manager.should_update_dashboard() {
             let mut dashboard = create_sample_dashboard_data();
-            dashboard.account_summary.total_equity += balance_change;
-            dashboard.account_summary.unrealized_pnl += balance_change * 0.7;
-            dashboard.account_summary.realized_pnl += balance_change * 0.3;
+            dashboard.account_summary.balance += balance_change;
+            dashboard.account_summary.equity += balance_change;
             
-            manager.update_dashboard(dashboard)?;
+            manager.update_dashboard(dashboard)
+                .map_err(|e| HyperliquidBacktestError::api_error(&format!("Update dashboard error: {}", e)))?;
         }
         
         // Sleep for a second
@@ -298,16 +331,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n11. Demonstrating alert escalation system...");
     
     // Low severity alert
-    manager.send_alert(AlertLevel::Info, "Minor network latency detected", None, None)?;
+    manager.send_alert(AlertLevel::Info, "Minor network latency detected", None, None)
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // Medium severity alert
-    manager.send_alert(AlertLevel::Warning, "Order execution delayed by 500ms", None, Some("order4"))?;
+    manager.send_alert(AlertLevel::Warning, "Order execution delayed by 500ms", None, Some("order4"))
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // High severity alert
-    manager.send_alert(AlertLevel::Error, "Failed to place order due to API error", Some("BTC"), Some("order5"))?;
+    manager.send_alert(AlertLevel::Error, "Failed to place order due to API error", Some("BTC"), Some("order5"))
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // Critical severity alert
-    manager.send_alert(AlertLevel::Critical, "Account margin below 10% - emergency stop activated", None, None)?;
+    manager.send_alert(AlertLevel::Critical, "Account margin below 10% - emergency stop activated", None, None)
+        .map_err(|e| HyperliquidBacktestError::api_error(&format!("Send alert error: {}", e)))?;
     
     // 12. Demonstrate monitoring dashboard sections
     println!("\n12. Demonstrating monitoring dashboard sections...");
@@ -324,11 +361,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n13. Cleaning up...");
     
     // Disconnect client
-    client.disconnect().await?;
+    client.disconnect().await.map_err(|e| HyperliquidBacktestError::api_error(&format!("Client disconnect error: {}", e)))?;
     println!("  Monitoring client disconnected");
     
     // Stop server
-    server.stop().await?;
+    server.stop().await.map_err(|e| HyperliquidBacktestError::api_error(&format!("Server stop error: {}", e)))?;
     println!("  Monitoring server stopped");
     
     // Print summary
@@ -339,13 +376,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn create_sample_dashboard_data() -> MonitoringDashboardData {
-    let now = Utc::now().with_timezone(&FixedOffset::east(0));
-    
-    // Create sample risk allocation
-    let mut risk_allocation = std::collections::HashMap::new();
-    risk_allocation.insert("BTC".to_string(), 60.0);
-    risk_allocation.insert("ETH".to_string(), 30.0);
-    risk_allocation.insert("SOL".to_string(), 10.0);
+    let now = Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap());
     
     // Create sample alerts
     let mut recent_alerts = Vec::new();
@@ -367,100 +398,42 @@ fn create_sample_dashboard_data() -> MonitoringDashboardData {
     MonitoringDashboardData {
         timestamp: now,
         account_summary: AccountSummary {
-            total_equity: 100000.0,
-            available_balance: 70000.0,
+            balance: 100000.0,
+            equity: 103000.0,
             margin_used: 30000.0,
-            margin_usage_pct: 30.0,
-            current_leverage: 1.5,
-            unrealized_pnl: 3000.0,
-            realized_pnl: 2000.0,
-            funding_pnl: 500.0,
+            margin_available: 70000.0,
         },
         position_summary: PositionSummary {
-            open_positions: 3,
+            total_positions: 3,
+            total_pnl: 3000.0,
             long_positions: 2,
             short_positions: 1,
-            total_position_value: 60000.0,
-            largest_position: PositionSnapshot {
-                symbol: "BTC".to_string(),
-                size: 1.0,
-                entry_price: 50000.0,
-                current_price: 51000.0,
-                unrealized_pnl: 1000.0,
-                unrealized_pnl_pct: 2.0,
-                funding_pnl: 200.0,
-                liquidation_price: None,
-                side: OrderSide::Buy,
-                position_age_hours: 24.0,
-            },
-            most_profitable: PositionSnapshot {
-                symbol: "BTC".to_string(),
-                size: 1.0,
-                entry_price: 50000.0,
-                current_price: 51000.0,
-                unrealized_pnl: 1000.0,
-                unrealized_pnl_pct: 2.0,
-                funding_pnl: 200.0,
-                liquidation_price: None,
-                side: OrderSide::Buy,
-                position_age_hours: 24.0,
-            },
-            least_profitable: PositionSnapshot {
-                symbol: "SOL".to_string(),
-                size: -100.0,
-                entry_price: 100.0,
-                current_price: 102.0,
-                unrealized_pnl: -200.0,
-                unrealized_pnl_pct: -2.0,
-                funding_pnl: -50.0,
-                liquidation_price: None,
-                side: OrderSide::Sell,
-                position_age_hours: 12.0,
-            },
         },
         order_summary: OrderSummary {
             active_orders: 5,
-            filled_today: 10,
-            cancelled_today: 2,
-            rejected_today: 1,
-            success_rate: 0.77,
-            avg_fill_time_ms: 120.0,
-            volume_today: 150000.0,
-            fees_today: 75.0,
+            filled_orders: 10,
+            cancelled_orders: 2,
+            total_volume: 150000.0,
         },
         risk_summary: RiskSummary {
-            current_drawdown_pct: 3.0,
-            max_drawdown_pct: 7.5,
-            value_at_risk: 5000.0,
-            daily_volatility: 2.0,
-            risk_allocation,
-            risk_warnings: Vec::new(),
-            circuit_breaker_status: "Normal".to_string(),
+            risk_level: "Medium".to_string(),
+            max_drawdown: 7.5,
+            var_95: 5000.0,
+            leverage: 1.5,
         },
         system_status: SystemStatus {
-            connection_status: "Connected".to_string(),
-            api_latency_ms: 45.0,
-            ws_latency_ms: 15.0,
-            uptime_hours: 48.0,
-            memory_usage_mb: 120.0,
-            cpu_usage_pct: 5.0,
-            last_error: None,
-            last_error_time: None,
+            is_connected: true,
+            is_running: true,
+            uptime_seconds: 172800, // 48 hours
+            last_heartbeat: now,
         },
         recent_alerts,
         performance: PerformanceSnapshot {
+            total_pnl: 5000.0,
             daily_pnl: 1500.0,
-            daily_pnl_pct: 1.5,
-            weekly_pnl: 3500.0,
-            weekly_pnl_pct: 3.5,
-            monthly_pnl: 8000.0,
-            monthly_pnl_pct: 8.0,
-            sharpe_ratio: 1.8,
-            sortino_ratio: 2.2,
             win_rate: 0.65,
-            avg_win: 500.0,
-            avg_loss: -300.0,
-            profit_factor: 1.67,
+            sharpe_ratio: 1.8,
+            max_drawdown: 7.5,
         },
     }
 }
