@@ -1,6 +1,5 @@
 use chrono::{Duration, Utc};
 use hyperliquid_backtest::prelude::*;
-use rs_backtester::prelude::*;
 use std::fs::File;
 use std::io::Write;
 use std::collections::HashMap;
@@ -48,18 +47,23 @@ async fn main() -> Result<()> {
     let mut asset_data = HashMap::new();
     
     // Fetch historical data for all assets
-    let end_time = Utc::now().timestamp() as u64;
-    let start_time = end_time - (120 * 24 * 3600); // 120 days of data
+    let end_time = Utc::now();
+    let start_time = end_time - Duration::days(30);
+    let start_timestamp = start_time.timestamp_millis() as u64;
+    let end_timestamp = end_time.timestamp_millis() as u64;
+    
+    println!("Time range debug:");
+    println!("  Current time: {}", end_time);
+    println!("  Start time: {}", start_time);
+    println!("  Start timestamp: {}", start_timestamp);
+    println!("  End timestamp: {}", end_timestamp);
+    println!();
     
     println!("Fetching historical data for {} assets...", assets.len());
     
     for asset in &assets {
         println!("Fetching {} data...", asset);
-        let data = match asset {
-            &"BTC" => HyperliquidData::fetch_btc("1h", start_time, end_time).await?,
-            &"ETH" => HyperliquidData::fetch_eth("1h", start_time, end_time).await?,
-            _ => HyperliquidData::fetch(asset, "1h", start_time, end_time).await?,
-        };
+        let data = HyperliquidData::fetch(asset, "1h", start_timestamp, end_timestamp).await?;
         
         println!("  {} data points fetched", data.len());
         asset_data.insert(asset.to_string(), data);
