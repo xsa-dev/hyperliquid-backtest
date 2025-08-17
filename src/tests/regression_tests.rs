@@ -899,7 +899,7 @@ async fn test_edge_case_regression_prevention() {
 // ============================================================================
 
 /// Create single data point for edge case testing
-fn create_single_point_data() -> Result<HyperliquidData, &'static str> {
+fn create_single_point_data() -> std::result::Result<HyperliquidData, &'static str> {
     let datetime = vec![
         DateTime::from_timestamp(1640995200, 0)
             .unwrap()
@@ -920,7 +920,7 @@ fn create_single_point_data() -> Result<HyperliquidData, &'static str> {
 }
 
 /// Create data with identical prices for edge case testing
-fn create_identical_price_data() -> Result<HyperliquidData, &'static str> {
+fn create_identical_price_data() -> std::result::Result<HyperliquidData, &'static str> {
     let size = 100;
     let datetime: Vec<DateTime<FixedOffset>> = (0..size)
         .map(|i| {
@@ -946,7 +946,7 @@ fn create_identical_price_data() -> Result<HyperliquidData, &'static str> {
 }
 
 /// Create data with extreme values for edge case testing
-fn create_extreme_value_data() -> Result<HyperliquidData, &'static str> {
+fn create_extreme_value_data() -> std::result::Result<HyperliquidData, &'static str> {
     let size = 50;
     let datetime: Vec<DateTime<FixedOffset>> = (0..size)
         .map(|i| {

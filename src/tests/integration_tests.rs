@@ -1489,19 +1489,19 @@ fn create_long_time_series_test_data(size: usize) -> HyperliquidData {
 }
 
 /// Create invalid format data for error testing
-fn create_invalid_format_data() -> Result<HyperliquidData, &'static str> {
+fn create_invalid_format_data() -> std::result::Result<HyperliquidData, &'static str> {
     // Simulate data with invalid format
     Err("Invalid data format")
 }
 
 /// Create data with missing timestamps for error testing
-fn create_missing_timestamp_data() -> Result<HyperliquidData, &'static str> {
+fn create_missing_timestamp_data() -> std::result::Result<HyperliquidData, &'static str> {
     // Simulate data with missing timestamps
     Err("Missing timestamp data")
 }
 
 /// Create data with inconsistent lengths for error testing
-fn create_inconsistent_length_data() -> Result<HyperliquidData, &'static str> {
+fn create_inconsistent_length_data() -> std::result::Result<HyperliquidData, &'static str> {
     // This would create data with mismatched vector lengths
     // For now, return an error to simulate the detection of this issue
     Err("Inconsistent data lengths")
@@ -1741,7 +1741,7 @@ fn create_v2_api_response() -> String {
 }
 
 /// Parse API response for compatibility testing
-fn parse_api_response(response: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn parse_api_response(response: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let _parsed: serde_json::Value = serde_json::from_str(response)?;
     Ok(())
 }
@@ -2063,7 +2063,7 @@ fn create_v2_api_response() -> String {
 }
 
 /// Parse API response for compatibility testing
-fn parse_api_response(response: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn parse_api_response(response: &str) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let _parsed: serde_json::Value = serde_json::from_str(response)?;
     Ok(())
 }

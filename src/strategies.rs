@@ -127,6 +127,16 @@
 //! }
 //! ```
 
+pub mod trading_strategy;
+pub mod funding_arbitrage_strategy;
+pub mod enhanced_sma_strategy;
+pub mod strategy_template;
+
+pub use trading_strategy::{TradingStrategy, StrategyConfig, StrategyState, BaseTradingStrategy};
+pub use funding_arbitrage_strategy::create_funding_arbitrage_strategy;
+pub use enhanced_sma_strategy::create_enhanced_sma_strategy;
+pub use strategy_template::create_strategy_template;
+
 use rs_backtester::strategies::Strategy;
 use rs_backtester::datas::Data;
 use serde::{Deserialize, Serialize};
