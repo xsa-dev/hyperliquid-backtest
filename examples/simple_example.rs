@@ -66,8 +66,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         51000.0, // execution price
     );
     
-    println!("   Order executed: {:?} {} at ${:.2}", 
-        order_result.side, order_result.quantity, order_result.symbol);
+    println!("   Order executed: {:?} {} {} at ${:.2}", 
+        order_result.side, order_result.quantity, order_result.symbol, order_result.price);
 
     // Update position
     println!("\n📈 Updating position...");
