@@ -29,7 +29,7 @@ fn main() {
     );
 
     // Build a limit order request using the simplified unified data structures.
-    let mut entry = OrderRequest::limit("BTC-PERP", OrderSide::Buy, 0.25, 50_000.0);
+    let mut entry = OrderRequest::limit("BTC-PERP", OrderSide::Buy, 0.05, 50_000.0);
     entry.time_in_force = TimeInForce::ImmediateOrCancel;
     entry.client_order_id = Some("demo-entry".into());
 

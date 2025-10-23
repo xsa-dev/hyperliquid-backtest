@@ -43,6 +43,12 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 thiserror = "1.0"
+hyperliquid_rust_sdk = "0.6.0"
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+rs-backtester = "0.1.0"
+ethers = "2.0"
+tracing = "0.1"
 rand = { version = "0.8", default-features = false, features = ["std"] }
 
 [dev-dependencies]
@@ -53,6 +59,148 @@ rand = "0.8"
 tokio = { version = "1", features = ["full"] }
 hyperliquid_rust_sdk = { git = "https://github.com/hyperliquid-dex/hyperliquid-rust-sdk" }
 
+# Working examples only
 [[example]]
 name = "mode_reporting_example"
 path = "examples/mode_reporting_example.rs"
+
+[[example]]
+name = "simple_example"
+path = "examples/simple_example.rs"
+
+[[example]]
+name = "unified_data_example"
+path = "examples/unified_data_example.rs"
+
+# [[example]]
+# name = "risk_management_configuration_example"
+# path = "examples/risk_management_configuration_example.rs"
+
+# [[example]]
+# name = "simple_working_backtest"
+# path = "examples/simple_working_backtest.rs"
+
+# [[example]]
+# name = "basic_backtest"
+# path = "examples/basic_backtest.rs"
+
+# [[example]]
+# name = "getting_started"
+# path = "examples/getting_started.rs"
+
+# Disabled examples (require additional modules not available in current library)
+# [[example]]
+# name = "basic_backtest"
+# path = "examples/basic_backtest.rs"
+
+# [[example]]
+# name = "comprehensive_example"
+# path = "examples/comprehensive_example.rs"
+
+# [[example]]
+# name = "csv_export_example"
+# path = "examples/csv_export_example.rs"
+
+# [[example]]
+# name = "enhanced_csv_export_example"
+# path = "examples/enhanced_csv_export_example.rs"
+
+# [[example]]
+# name = "funding_arbitrage_advanced"
+# path = "examples/funding_arbitrage_advanced.rs"
+
+# [[example]]
+# name = "funding_indicators"
+# path = "examples/funding_indicators.rs"
+
+# [[example]]
+# name = "funding_report"
+# path = "examples/funding_report.rs"
+
+# [[example]]
+# name = "getting_started"
+# path = "examples/getting_started.rs"
+
+# [[example]]
+# name = "live_trading_deployment_example"
+# path = "examples/live_trading_deployment_example.rs"
+
+# [[example]]
+# name = "live_trading_deployment_guide"
+# path = "examples/live_trading_deployment_guide.rs"
+
+# [[example]]
+# name = "live_trading_safety_example"
+# path = "examples/live_trading_safety_example.rs"
+
+# [[example]]
+# name = "multi_asset_backtest"
+# path = "examples/multi_asset_backtest.rs"
+
+# [[example]]
+# name = "multi_mode_comparison_example"
+# path = "examples/multi_mode_comparison_example.rs"
+
+# [[example]]
+# name = "paper_trading_example"
+# path = "examples/paper_trading_example.rs"
+
+# [[example]]
+# name = "paper_trading_setup_example"
+# path = "examples/paper_trading_setup_example.rs"
+
+# [[example]]
+# name = "performance_comparison"
+# path = "examples/performance_comparison.rs"
+
+# [[example]]
+# name = "portfolio_management_example"
+# path = "examples/portfolio_management_example.rs"
+
+# [[example]]
+# name = "real_time_monitoring_and_alerting_example"
+# path = "examples/real_time_monitoring_and_alerting_example.rs"
+
+# [[example]]
+# name = "real_time_monitoring_example"
+# path = "examples/real_time_monitoring_example.rs"
+
+# [[example]]
+# name = "risk_management_configuration_example"
+# path = "examples/risk_management_configuration_example.rs"
+
+# [[example]]
+# name = "simple_data_fetching"
+# path = "examples/simple_data_fetching.rs"
+
+# [[example]]
+# name = "simple_working_backtest"
+# path = "examples/simple_working_backtest.rs"
+
+# [[example]]
+# name = "strategy_comparison"
+# path = "examples/strategy_comparison.rs"
+
+# [[example]]
+# name = "strategy_migration_example"
+# path = "examples/strategy_migration_example.rs"
+
+# [[example]]
+# name = "strategy_optimization_workflow_example"
+# path = "examples/strategy_optimization_workflow_example.rs"
+
+# [[example]]
+# name = "trading_mode_example"
+# path = "examples/trading_mode_example.rs"
+
+# [[example]]
+# name = "unified_data_example"
+# path = "examples/unified_data_example.rs"
+
+# [[example]]
+# name = "unified_strategy_example"
+# path = "examples/unified_strategy_example.rs"
+
+# [[example]]
+# name = "working_data_fetch"
+# path = "examples/working_data_fetch.rs"
