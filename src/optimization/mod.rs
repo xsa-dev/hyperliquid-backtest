@@ -1,5 +1,5 @@
 use rand::RngCore;
-use std::fmt;
+use std::{fmt, marker::PhantomData};
 
 /// Defines how candidate parameters behave within the genetic algorithm.
 pub trait Genome: Clone + Send + Sync + Sized {
@@ -161,6 +161,7 @@ where
 {
     config: GeneticOptimizerConfig,
     evaluator: E,
+    phantom: PhantomData<G>,
 }
 
 impl<G, E> GeneticOptimizer<G, E>
@@ -170,7 +171,11 @@ where
 {
     /// Create a new optimizer.
     pub fn new(config: GeneticOptimizerConfig, evaluator: E) -> Self {
-        Self { config, evaluator }
+        Self {
+            config,
+            evaluator,
+            phantom: PhantomData,
+        }
     }
 
     /// Execute the optimization run and return the best candidate discovered.
