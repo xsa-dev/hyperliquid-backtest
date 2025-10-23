@@ -7,6 +7,7 @@
 //! quickly and remain easy to understand.
 
 pub mod backtest;
+pub mod optimization;
 pub mod risk_manager;
 pub mod unified_data;
 

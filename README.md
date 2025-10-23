@@ -24,6 +24,7 @@ A comprehensive Rust library that integrates Hyperliquid trading data with the r
 - 🎯 **Risk Management**: Advanced risk controls and position management
 - 📊 **Unified Data Interface**: Consistent API across different trading modes
 - 🔔 **Alert System**: Configurable alerts for market conditions and performance metrics
+- 🧬 **Genetic Optimization**: Built-in GA framework for tuning strategy hyperparameters
 
 ## 📦 Installation
 
@@ -153,6 +154,23 @@ async fn main() -> Result<(), HyperliquidBacktestError> {
     Ok(())
 }
 ```
+
+### Genetic Hyperparameter Optimization
+
+The crate ships with a reusable genetic algorithm engine that can search strategy
+parameters for you. Implement the [`Genome`](https://docs.rs/hyperliquid-backtest/latest/hyperliquid_backtest/optimization/trait.Genome.html)
+trait for your configuration, provide an evaluation function, and let the
+optimizer explore the space. The bundled example downloads real candles via the
+official SDK and tunes the SMA crossover strategy end-to-end:
+
+```bash
+cargo run --example ga_optimize
+```
+
+The optimizer reports the best candidate per generation together with the
+metrics returned by your evaluator. This makes it easy to compare fitness
+scores, inspect Sharpe/return/drawdown trade-offs, or integrate a custom
+scoring function.
 
 ### Real-Time Monitoring Example
 
