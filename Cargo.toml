@@ -2,7 +2,7 @@
 # All actions are performed at your own risk.
 [package]
 name = "hyperliquid-backtest"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 rust-version = "1.70"
 authors = ["Hyperliquid Backtester Contributors"]
