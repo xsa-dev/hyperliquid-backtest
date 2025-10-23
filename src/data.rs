@@ -15,7 +15,9 @@
 //!
 //! ### Basic Data Fetching
 //!
-//! ```rust,no_run
+//! ```rust,ignore
+//! use hyperliquid_backtest::data::HyperliquidData;
+//! use hyperliquid_backtest::errors::HyperliquidBacktestError;
 //! use hyperliquid_backtest::prelude::*;
 //! use chrono::Utc;
 //!
@@ -35,8 +37,12 @@
 //!
 //! ### Working with Funding Rates
 //!
-//! ```rust,no_run
+//! ```rust,ignore
+//! use hyperliquid_backtest::data::HyperliquidData;
+//! use hyperliquid_backtest::errors::HyperliquidBacktestError;
 //! use hyperliquid_backtest::prelude::*;
+//! # let start_time = 0;
+//! # let end_time = 0;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), HyperliquidBacktestError> {
@@ -82,8 +88,12 @@ use std::collections::HashMap;
 ///
 /// ## Example
 ///
-/// ```rust,no_run
+/// ```rust,ignore
+/// use hyperliquid_backtest::data::HyperliquidData;
+/// use hyperliquid_backtest::errors::HyperliquidBacktestError;
 /// use hyperliquid_backtest::prelude::*;
+/// # let start_time = 0;
+/// # let end_time = 0;
 ///
 /// #[tokio::main]
 /// async fn main() -> Result<(), HyperliquidBacktestError> {
@@ -471,8 +481,9 @@ impl HyperliquidData {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
-    /// use hyperliquid_backtest::prelude::*;
+    /// ```rust,ignore
+    /// use hyperliquid_backtest::data::HyperliquidData;
+    /// use hyperliquid_backtest::errors::HyperliquidBacktestError;
     /// use chrono::Utc;
     ///
     /// #[tokio::main]
@@ -568,8 +579,9 @@ impl HyperliquidData {
     ///
     /// # Examples
     ///
-    /// ```rust,no_run
-    /// use hyperliquid_backtest::prelude::*;
+    /// ```rust,ignore
+    /// use hyperliquid_backtest::data::HyperliquidData;
+    /// use hyperliquid_backtest::errors::HyperliquidBacktestError;
     /// use chrono::{DateTime, FixedOffset, Utc};
     ///
     /// let timestamps = vec![Utc::now().with_timezone(&FixedOffset::east_opt(0).unwrap())];

@@ -6,13 +6,21 @@
 //! avoids external dependencies or complex behaviours so the library can compile
 //! quickly and remain easy to understand.
 
+pub mod alpha;
 pub mod backtest;
+pub mod data;
+pub mod errors;
+pub mod features;
 pub mod optimization;
+pub mod report;
 pub mod risk_manager;
+pub mod signals;
+pub mod strategy;
 pub mod unified_data;
 
 #[cfg(test)]
 mod tests {
+    mod alpha_pipeline_tests;
     mod basic;
 }
 
