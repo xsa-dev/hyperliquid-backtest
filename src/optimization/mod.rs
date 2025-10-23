@@ -299,13 +299,15 @@ where
     ) -> GenerationSummary<E::Metrics> {
         let mut total = 0.0;
         let mut count = 0usize;
-        let mut best_fitness = f64::NEG_INFINITY;
-        let mut best_metrics = None;
+        let mut best: Option<&Individual<G, E::Metrics>> = None;
 
         for individual in population {
-            if individual.fitness > best_fitness {
-                best_fitness = individual.fitness;
-                best_metrics = individual.metrics.clone();
+            if best
+                .as_ref()
+                .map(|current| individual.fitness > current.fitness)
+                .unwrap_or(true)
+            {
+                best = Some(individual);
             }
 
             if individual.fitness.is_finite() {
@@ -320,11 +322,16 @@ where
             f64::NEG_INFINITY
         };
 
+        let best = best.expect("population must contain at least one individual");
+
         GenerationSummary {
             index,
-            best_fitness,
+            best_fitness: best.fitness,
             average_fitness: average,
-            best_metrics: best_metrics.expect("metrics must exist after evaluation"),
+            best_metrics: best
+                .metrics
+                .clone()
+                .expect("metrics must exist after evaluation"),
         }
     }
 }
