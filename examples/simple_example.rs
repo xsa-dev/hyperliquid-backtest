@@ -7,7 +7,7 @@ use std::collections::HashMap;
 /// This example demonstrates the basic functionality available in the current library.
 /// It shows how to create positions, orders, and use the risk manager.
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     println!("🚀 Simple Hyperliquid Backtester Example");
     println!("========================================\n");
 
