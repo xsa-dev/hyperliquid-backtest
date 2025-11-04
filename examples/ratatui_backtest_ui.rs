@@ -311,25 +311,49 @@ impl App {
             .as_f64()
             .unwrap_or(30.0) as usize;
         
+        // Extract funding parameters from JSON
+        let funding_weight = strategy_config["parameters"]["funding_weight"]["Number"]
+            .as_f64()
+            .unwrap_or(0.5);
+        let funding_threshold = strategy_config["parameters"]["funding_threshold"]["Number"]
+            .as_f64()
+            .unwrap_or(0.0001);
+        let use_funding_direction = strategy_config["parameters"]["use_funding_direction"]["Boolean"]
+            .as_bool()
+            .unwrap_or(true);
+        let use_funding_prediction = strategy_config["parameters"]["use_funding_prediction"]["Boolean"]
+            .as_bool()
+            .unwrap_or(true);
+        
+        // Create FundingAwareConfig from JSON parameters
+        let funding_config = FundingAwareConfig {
+            funding_threshold,
+            funding_weight,
+            use_funding_direction,
+            use_funding_prediction,
+        };
+        
         let strategy_name = strategy_config["name"]
             .as_str()
             .unwrap_or("Unknown Strategy")
             .to_string();
 
-        // Create strategy
+        // Create strategy with funding config from JSON
         self.loading_message = "Creating strategy...".to_string();
         let rs_data = data.to_rs_backtester_data();
         let strategy = enhanced_sma_cross(
             rs_data,
             fast_period,
             slow_period,
-            Default::default(),
+            funding_config,
         );
 
-        // Create commission - try using available methods
-        // Note: HyperliquidCommission may need to be imported from a different module
-        // For now, use default and adjust if needed
-        let commission = HyperliquidCommission::default();
+        // Create commission using rates from form configuration
+        let commission = HyperliquidCommission {
+            maker_rate: self.config.maker_rate,
+            taker_rate: self.config.taker_rate,
+            funding_enabled: true,
+        };
 
         // Run backtest
         self.loading_message = "Running backtest...".to_string();
@@ -813,8 +837,15 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
                                 }
                             }
                             KeyCode::Enter => {
-                                // Run backtest - spawn async task
+                                // Show "Backtesting..." message and start backtest
                                 app.error_message = None;
+                                app.loading_message = "Backtesting...".to_string();
+                                app.state = AppState::Loading;
+                                
+                                // Force a render to show the message before blocking
+                                terminal.draw(|f| ui(f, &app))?;
+                                
+                                // Run backtest
                                 let mut app_clone = app.clone();
                                 let rt = tokio::runtime::Runtime::new().unwrap();
                                 match rt.block_on(app_clone.run_backtest()) {

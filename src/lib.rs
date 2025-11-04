@@ -23,7 +23,7 @@ mod tests {
 pub mod prelude {
     pub use crate::backtest::*;
     pub use crate::data::HyperliquidData;
-    pub use crate::strategies::enhanced_sma_cross;
+    pub use crate::strategies::{enhanced_sma_cross, FundingAwareConfig};
     pub use crate::risk_manager::{RiskConfig, RiskError, RiskManager, RiskOrder};
     pub use crate::unified_data::{
         OrderRequest, OrderResult, OrderSide, OrderType, Position, TimeInForce,
