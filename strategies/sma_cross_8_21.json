@@ -1,0 +1,30 @@
+{
+  "name": "SMA Crossover (8/21)",
+  "description": "Fibonacci-based Moving Average crossover strategy with 8 and 21 period SMAs",
+  "version": "1.0.0",
+  "parameters": {
+    "fast_period": {
+      "Number": 8.0
+    },
+    "slow_period": {
+      "Number": 21.0
+    },
+    "funding_weight": {
+      "Number": 0.5
+    },
+    "funding_threshold": {
+      "Number": 0.0001
+    },
+    "use_funding_direction": {
+      "Boolean": true
+    },
+    "use_funding_prediction": {
+      "Boolean": false
+    }
+  },
+  "metadata": {
+    "strategy_type": "sma_crossover",
+    "min_data_points": "21"
+  }
+}
+

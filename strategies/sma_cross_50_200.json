@@ -1,0 +1,30 @@
+{
+  "name": "SMA Crossover (50/200)",
+  "description": "Long-term Moving Average crossover strategy with 50 and 200 period SMAs (Golden Cross)",
+  "version": "1.0.0",
+  "parameters": {
+    "fast_period": {
+      "Number": 50.0
+    },
+    "slow_period": {
+      "Number": 200.0
+    },
+    "funding_weight": {
+      "Number": 0.5
+    },
+    "funding_threshold": {
+      "Number": 0.0001
+    },
+    "use_funding_direction": {
+      "Boolean": true
+    },
+    "use_funding_prediction": {
+      "Boolean": false
+    }
+  },
+  "metadata": {
+    "strategy_type": "sma_crossover",
+    "min_data_points": "200"
+  }
+}
+

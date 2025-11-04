@@ -1,0 +1,30 @@
+{
+  "name": "SMA Crossover (12/26) - Aggressive",
+  "description": "MACD-style SMA crossover with aggressive funding threshold (12/26 periods)",
+  "version": "1.0.0",
+  "parameters": {
+    "fast_period": {
+      "Number": 12.0
+    },
+    "slow_period": {
+      "Number": 26.0
+    },
+    "funding_weight": {
+      "Number": 0.3
+    },
+    "funding_threshold": {
+      "Number": 0.00005
+    },
+    "use_funding_direction": {
+      "Boolean": true
+    },
+    "use_funding_prediction": {
+      "Boolean": false
+    }
+  },
+  "metadata": {
+    "strategy_type": "sma_crossover",
+    "min_data_points": "26"
+  }
+}
+

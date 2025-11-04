@@ -1,0 +1,30 @@
+{
+  "name": "SMA Crossover (15/40)",
+  "description": "Balanced Moving Average crossover strategy with 15 and 40 period SMAs",
+  "version": "1.0.0",
+  "parameters": {
+    "fast_period": {
+      "Number": 15.0
+    },
+    "slow_period": {
+      "Number": 40.0
+    },
+    "funding_weight": {
+      "Number": 0.5
+    },
+    "funding_threshold": {
+      "Number": 0.0001
+    },
+    "use_funding_direction": {
+      "Boolean": true
+    },
+    "use_funding_prediction": {
+      "Boolean": false
+    }
+  },
+  "metadata": {
+    "strategy_type": "sma_crossover",
+    "min_data_points": "40"
+  }
+}
+

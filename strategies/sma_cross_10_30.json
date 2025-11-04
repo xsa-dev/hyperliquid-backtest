@@ -1,0 +1,30 @@
+{
+  "name": "SMA Crossover (10/30)",
+  "description": "Simple Moving Average crossover strategy with 10 and 30 period SMAs",
+  "version": "1.0.0",
+  "parameters": {
+    "fast_period": {
+      "Number": 10.0
+    },
+    "slow_period": {
+      "Number": 30.0
+    },
+    "funding_weight": {
+      "Number": 0.5
+    },
+    "funding_threshold": {
+      "Number": 0.0001
+    },
+    "use_funding_direction": {
+      "Boolean": true
+    },
+    "use_funding_prediction": {
+      "Boolean": false
+    }
+  },
+  "metadata": {
+    "strategy_type": "sma_crossover",
+    "min_data_points": "30"
+  }
+}
+

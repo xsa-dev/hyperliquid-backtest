@@ -1,0 +1,30 @@
+{
+  "name": "SMA Crossover (10/30) - Funding Focus",
+  "description": "SMA crossover strategy with enhanced funding rate consideration (10/30 periods)",
+  "version": "1.0.0",
+  "parameters": {
+    "fast_period": {
+      "Number": 10.0
+    },
+    "slow_period": {
+      "Number": 30.0
+    },
+    "funding_weight": {
+      "Number": 0.7
+    },
+    "funding_threshold": {
+      "Number": 0.0002
+    },
+    "use_funding_direction": {
+      "Boolean": true
+    },
+    "use_funding_prediction": {
+      "Boolean": true
+    }
+  },
+  "metadata": {
+    "strategy_type": "sma_crossover",
+    "min_data_points": "30"
+  }
+}
+

@@ -1,0 +1,30 @@
+{
+  "name": "SMA Crossover (3/9)",
+  "description": "Ultra-fast Moving Average crossover strategy with 3 and 9 period SMAs for scalping",
+  "version": "1.0.0",
+  "parameters": {
+    "fast_period": {
+      "Number": 3.0
+    },
+    "slow_period": {
+      "Number": 9.0
+    },
+    "funding_weight": {
+      "Number": 0.5
+    },
+    "funding_threshold": {
+      "Number": 0.0001
+    },
+    "use_funding_direction": {
+      "Boolean": true
+    },
+    "use_funding_prediction": {
+      "Boolean": false
+    }
+  },
+  "metadata": {
+    "strategy_type": "sma_crossover",
+    "min_data_points": "9"
+  }
+}
+
