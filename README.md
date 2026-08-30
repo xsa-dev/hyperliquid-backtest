@@ -1,3 +1,5 @@
+
+
 # Hyperliquid Backtester
 
 [![Crates.io](https://img.shields.io/crates/v/hyperliquid-backtest.svg)](https://crates.io/crates/hyperliquid-backtest)
@@ -32,7 +34,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-hyperliquid-backtest = "0.1.1"
+hyperliquid-backtest = "0.1.2"
 tokio = { version = "1.0", features = ["full"] }
 chrono = { version = "0.4", features = ["serde"] }
 ```
@@ -376,7 +378,7 @@ This crate follows [Semantic Versioning (SemVer)](https://semver.org/):
 - **Minor version** (0.1.x → 0.2.0): New features, backward compatible
 - **Patch version** (0.1.0 → 0.1.1): Bug fixes, backward compatible
 
-**Current version: 0.1.1** (Pre-1.0 development phase)
+**Current version: 0.1.2** (Pre-1.0 development phase)
 
 ### Stability Guarantees
 
