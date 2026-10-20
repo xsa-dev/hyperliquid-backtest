@@ -242,7 +242,7 @@ let candles = info_client
 
 The examples above pull candles from the Hyperliquid info API. If you need longer or more granular history for backtests, such as trade-level fills or order book state, pre-built Parquet datasets are another option:
 
-- **[Hydromancer Reservoir](https://docs.hydromancer.xyz/reservoir)**: Hyperliquid historical data on AWS S3 (`s3://hydromancer-reservoir`, region `ap-northeast-1`, requester pays), stored as Parquet and partitioned by `date=YYYY-MM-DD`. It includes trade fills (with liquidation, ADL and TWAP subsets), 1-second OHLCV candles, 20-level order book snapshots at 1-minute cadence, and daily position snapshots, for Hyperliquid perps and HIP-3 dexes. Any Parquet reader (DuckDB, Polars, or the `arrow`/`parquet` crates) can load it into the OHLC vectors used in the backtesting example above. It does not include funding rates, so keep using the API for those.
+- **[Hydromancer Reservoir](https://hydromancer.xyz/hyperliquid-historical-data)**: Hyperliquid historical data on AWS S3 (`s3://hydromancer-reservoir`, region `ap-northeast-1`, requester pays), stored as Parquet and partitioned by `date=YYYY-MM-DD`. It includes trade fills (with liquidation, ADL and TWAP subsets), 1-second OHLCV candles, 20-level order book snapshots at 1-minute cadence, and daily position snapshots, for Hyperliquid perps and HIP-3 dexes. Any Parquet reader (DuckDB, Polars, or the `arrow`/`parquet` crates) can load it into the OHLC vectors used in the backtesting example above. It does not include funding rates, so keep using the API for those.
 
 ### Trading Modes
 
